@@ -13,21 +13,37 @@ import {
 	Text,
 } from '@chakra-ui/react';
 
-import { Field, Form, Formik, useFormik } from 'formik';
-import { useRef, useState } from 'react';
+import { useFormik } from 'formik';
+import { GetServerSidePropsContext } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../api/auth/[...nextauth]';
+
+import {
+	useSession,
+	signIn,
+	getProviders,
+	getCsrfToken,
+} from 'next-auth/react';
 
 export default function SignIn() {
+	const { data: session } = useSession();
+
 	const formik = useFormik({
 		initialValues: {
 			email: '',
 			password: '',
 		},
-		onSubmit: (values) => {
+		onSubmit: async (values) => {
 			console.log(values);
-			setTimeout(() => {
-				//ending submission
-				formik.setSubmitting(false);
-			}, 2000);
+			//ending submission
+			const res = await signIn('credentials', {
+				email: values.email,
+				password: values.password,
+				redirect: false,
+				callbackUrl: '',
+			});
+			console.log(res);
+			formik.setSubmitting(false);
 		},
 	});
 
@@ -79,6 +95,7 @@ export default function SignIn() {
 											<PasswordField
 												value={formik.values.password}
 												onChange={formik.handleChange}
+												type="password"
 											/>
 											<Button
 												colorScheme="purple"
@@ -110,4 +127,18 @@ export default function SignIn() {
 			></Container>
 		</Flex>
 	);
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+	const session = await getServerSession(context.req, context.res, authOptions);
+	// If the user is already logged in, redirect.
+	// Note: Make sure not to redirect to the same page
+	// To avoid an infinite loop!
+	if (session) {
+		return { redirect: { destination: '/' } };
+	}
+
+	return {
+		props: {},
+	};
 }

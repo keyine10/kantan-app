@@ -5,7 +5,16 @@ import axios from 'axios';
 export const KANTAN_BACKEND_SIGNIN_ENDPOINT =
 	process.env.KANTAN_BACKEND_API_ENDPOINT + '/authentication/sign-in';
 
+export type CredentialUser = {
+	id: number;
+	name: string;
+	email: string;
+	bio: string;
+	accessToken: string;
+};
+
 export const authOptions: NextAuthOptions = {
+	secret: process.env.JWT_SECRET,
 	providers: [
 		CredentialsProvider({
 			id: 'credentials',
@@ -21,21 +30,25 @@ export const authOptions: NextAuthOptions = {
 			},
 			async authorize(credentials, req) {
 				// Add logic here to look up the user from the credentials supplied
-				const response = await axios.post(KANTAN_BACKEND_SIGNIN_ENDPOINT, {
-					email: credentials?.email,
-					password: credentials?.password,
-				});
-				console.log('authorize', credentials, req);
-				return response.data;
+				try {
+					const response = await axios.post(KANTAN_BACKEND_SIGNIN_ENDPOINT, {
+						email: credentials?.email,
+						password: credentials?.password,
+					});
+					console.log('RESPONSE DATA:', response.data);
+					let user = response.data;
+					if (!user) return false;
+					return user;
+				} catch (error) {
+					throw new Error();
+				}
 			},
 		}),
 	],
 	callbacks: {
-		async jwt({ token, account }) {
-			// Persist the OAuth access_token to the token right after signin
-			if (account) {
-				token.accessToken = account.accesstoken;
-			}
+		async jwt({ token, user }) {
+			console.log('JWT:', user, token);
+
 			return token;
 		},
 		async session({ session, token, user }) {
@@ -46,11 +59,8 @@ export const authOptions: NextAuthOptions = {
 		async redirect({ url, baseUrl }) {
 			return baseUrl;
 		},
-		async signIn({ user, account, profile, email, credentials }) {
+		async signIn({ user, credentials }) {
 			console.log('User:', user);
-			console.log('Account:', account);
-			console.log('Profile:', profile);
-			console.log('Email:', email);
 			console.log('Credentials:', credentials);
 			const isAllowedToSignIn = true;
 			if (isAllowedToSignIn) {
