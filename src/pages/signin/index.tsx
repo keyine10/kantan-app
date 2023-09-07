@@ -13,7 +13,24 @@ import {
 	Text,
 } from '@chakra-ui/react';
 
+import { Field, Form, Formik, useFormik } from 'formik';
+import { useRef, useState } from 'react';
+
 export default function SignIn() {
+	const formik = useFormik({
+		initialValues: {
+			email: '',
+			password: '',
+		},
+		onSubmit: (values) => {
+			console.log(values);
+			setTimeout(() => {
+				//ending submission
+				formik.setSubmitting(false);
+			}, 2000);
+		},
+	});
+
 	return (
 		<Flex height="100vh">
 			<Container
@@ -46,22 +63,34 @@ export default function SignIn() {
 							// borderRadius={{ base: 'none', sm: 'xl' }}
 						>
 							<Stack spacing="6">
-								<Stack spacing="5">
+								<form onSubmit={formik.handleSubmit}>
 									<FormControl>
-										<FormLabel htmlFor="email">Email</FormLabel>
-										<Input id="email" type="email" />
+										<Stack spacing="6">
+											<div>
+												<FormLabel htmlFor="email">Email</FormLabel>
+												<Input
+													id="email"
+													name="email"
+													type="email"
+													value={formik.values.email}
+													onChange={formik.handleChange}
+												/>
+											</div>
+											<PasswordField
+												value={formik.values.password}
+												onChange={formik.handleChange}
+											/>
+											<Button
+												colorScheme="purple"
+												type="submit"
+												// onClick={handleOnClickSubmit}
+												isLoading={formik.isSubmitting}
+											>
+												Sign in
+											</Button>
+										</Stack>
 									</FormControl>
-									<PasswordField />
-								</Stack>
-								{/* <HStack justify="space-between">
-                                <Checkbox defaultChecked>Remember me</Checkbox>
-                                <Button variant="text" size="sm">
-                                    Forgot password?
-                                </Button>
-                            </HStack> */}
-								<Stack spacing="6">
-									<Button colorScheme="purple">Sign in</Button>
-								</Stack>
+								</form>
 								<Text color="fg.muted">
 									Don't have an account?{' '}
 									<Link href="#" color="blue">
