@@ -35,9 +35,11 @@ export const authOptions: NextAuthOptions = {
 						email: credentials?.email,
 						password: credentials?.password,
 					});
-					console.log('RESPONSE DATA:', response.data);
+					// console.log('RESPONSE DATA:', response.data);
 					let user = response.data;
-					if (!user) return false;
+					if (!user) {
+						throw new Error('Unauthorized');
+					}
 					return user;
 				} catch (error) {
 					throw new Error();
@@ -46,14 +48,12 @@ export const authOptions: NextAuthOptions = {
 		}),
 	],
 	callbacks: {
-		async jwt({ token, user }) {
-			console.log('JWT:', user, token);
+		async jwt({ token }) {
+			console.log('JWT token:', token);
 
 			return token;
 		},
 		async session({ session, token, user }) {
-			// Send properties to the client, like an access_token from a provider.
-			// session.accessToken = token.accessToken;
 			return session;
 		},
 		async redirect({ url, baseUrl }) {

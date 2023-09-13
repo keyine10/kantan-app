@@ -24,10 +24,12 @@ import {
 	getProviders,
 	getCsrfToken,
 } from 'next-auth/react';
+import { useState } from 'react';
 
 export default function SignIn() {
 	const { data: session } = useSession();
-
+	//TODO: add error display
+	const [error, setError] = useState(false);
 	const formik = useFormik({
 		initialValues: {
 			email: '',
@@ -43,6 +45,8 @@ export default function SignIn() {
 				callbackUrl: '',
 			});
 			console.log(res);
+			if (res?.status === 401) setError(true);
+			else setError(false);
 			formik.setSubmitting(false);
 		},
 	});
@@ -75,8 +79,6 @@ export default function SignIn() {
 							py={{ base: '0', sm: '8' }}
 							px={{ base: '4', sm: '10' }}
 							bg={{ base: 'transparent', sm: 'bg.surface' }}
-							// boxShadow={{ base: 'none', sm: 'md' }}
-							// borderRadius={{ base: 'none', sm: 'xl' }}
 						>
 							<Stack spacing="6">
 								<form onSubmit={formik.handleSubmit}>
@@ -95,12 +97,10 @@ export default function SignIn() {
 											<PasswordField
 												value={formik.values.password}
 												onChange={formik.handleChange}
-												type="password"
 											/>
 											<Button
 												colorScheme="purple"
 												type="submit"
-												// onClick={handleOnClickSubmit}
 												isLoading={formik.isSubmitting}
 											>
 												Sign in
@@ -134,9 +134,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 	// If the user is already logged in, redirect.
 	// Note: Make sure not to redirect to the same page
 	// To avoid an infinite loop!
-	if (session) {
-		return { redirect: { destination: '/' } };
-	}
+
+	//TODO: redirect
+	// if (session) {
+	// 	return { redirect: { destination: '/' } };
+	// }
 
 	return {
 		props: {},
