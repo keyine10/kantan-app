@@ -1,7 +1,14 @@
 import { Container, HStack, Stack } from '@chakra-ui/react';
 import KanbanList from './KanbanList';
 import { KanbanListModel } from '../../types/kanban-list';
-
+import { DndContext, DragOverlay, closestCenter } from '@dnd-kit/core';
+import {
+	SortableContext,
+	verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { KanbanTaskModel } from '../../types/kanban-task';
+import { useState } from 'react';
+import KanbanCard from './KanbanCard';
 const mockBoard = {
 	lists: [
 		{
@@ -35,19 +42,19 @@ const mockBoard = {
 			position: 8192,
 			tasks: [
 				{
-					id: '1',
+					id: '4',
 					name: 'new task',
 					description: 'new task description 1',
 					position: 1,
 				},
 				{
-					id: '2',
+					id: '5',
 					name: 'new task 1',
 					description: 'new task description 2',
 					position: 2,
 				},
 				{
-					id: '3',
+					id: '6',
 					name: 'new task 2',
 					description: 'new task description 3',
 					position: 3,
@@ -60,19 +67,19 @@ const mockBoard = {
 			position: 16384,
 			tasks: [
 				{
-					id: '1',
+					id: '7',
 					name: 'new task',
 					description: 'new task description 1',
 					position: 1,
 				},
 				{
-					id: '2',
+					id: '8',
 					name: 'new task 1',
 					description: 'new task description 2',
 					position: 2,
 				},
 				{
-					id: '3',
+					id: '9',
 					name: 'new task 2',
 					description: 'new task description 3',
 					position: 3,
@@ -83,13 +90,45 @@ const mockBoard = {
 };
 
 export default function KanbanBoard() {
-	const renderLists = mockBoard.lists.map((list: KanbanListModel) => (
-		<KanbanList list={list} key={list.id} />
-	));
+	let [mockLists, setMockLists] = useState(mockBoard.lists);
+	const renderLists = mockLists.map((list: KanbanListModel) => {
+		return <KanbanList list={list} key={list.id} />;
+	});
 
+	const [activeId, setActiveId] = useState(null);
+	function handleDragStart(event: any) {
+		setActiveId(event.active.id);
+	}
+
+	const handleDragEnd = (event: any) => {
+		const { active, over } = event;
+		if (active.id !== over.id) {
+			console.log('dragged from ', active.id, ' to ', over.id);
+			//   setMockLists((items) => {
+			//     const oldIndex = items.indexOf(active.id);
+			//     const newIndex = items.indexOf(over.id);
+			//     return arrayMove(items, oldIndex, newIndex);
+			//   });
+		}
+		setActiveId(null);
+	};
+	//TODO: Refactor to use simplegrid
 	return (
-		<Container maxW={'container.lg'} overflow={'auto'}>
-			<HStack spacing={10}>{renderLists}</HStack>
-		</Container>
+		<DndContext
+			collisionDetection={closestCenter}
+			onDragStart={handleDragStart}
+			onDragEnd={handleDragEnd}
+		>
+			<Container maxW={'container.lg'} maxH={'99vh'} overflow={'auto'}>
+				<HStack spacing={10}>
+					{/* <SortableContext items={listIds}> */}
+					{renderLists}
+					{/* </SortableContext> */}
+				</HStack>
+			</Container>
+			{/* <DragOverlay> */}
+			{/* {activeId ? <KanbanCard task={mockLists[0][0]} /> : null} */}
+			{/* </DragOverlay> */}
+		</DndContext>
 	);
 }

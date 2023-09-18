@@ -8,16 +8,30 @@ import {
 } from '@chakra-ui/react';
 import { KanbanTaskModel } from '../../types/kanban-task';
 import { HamburgerIcon } from '@chakra-ui/icons';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 export default function KanbanCard({ task }: { task: KanbanTaskModel }) {
+	const { attributes, listeners, setNodeRef, transform, transition } =
+		useSortable({ id: task.id });
+
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
+	};
 	return (
 		<Card
 			as="div"
-			role="group"
 			position="relative"
 			rounded={'lg'}
 			minW={272}
-			bgColor={'yellow.400'}
+			bgColor={'gray.100'}
 			cursor={'grab'}
+			ref={setNodeRef}
+			style={style}
+			{...attributes}
+			{...listeners}
+			zIndex={100}
+			key={task.id}
 		>
 			<IconButton
 				position={'absolute'}
@@ -34,14 +48,17 @@ export default function KanbanCard({ task }: { task: KanbanTaskModel }) {
 			/>
 			<CardBody>
 				<Textarea
-					value={task.name}
+					defaultValue={task.name}
 					border={'none'}
 					cursor={'inherit'}
 					p={0}
-					minH={70}
+					minH={'unset'}
 					maxH={200}
-					focusBorderColor="none"
 					resize={'none'}
+					_focusVisible={{
+						outline: 'none',
+						bg: 'white.300',
+					}}
 				/>
 			</CardBody>
 		</Card>

@@ -3,7 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
 
 export const KANTAN_BACKEND_SIGNIN_ENDPOINT =
-	process.env.KANTAN_BACKEND_API_ENDPOINT + '/authentication/sign-in';
+	process.env.NEXT_PUBLIC_API_URL + '/authentication/sign-in';
 
 export type CredentialUser = {
 	id: number;

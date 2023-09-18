@@ -1,10 +1,15 @@
 import { PasswordField } from '@/components/auth/PasswordField';
 import {
+	Alert,
+	AlertDescription,
+	AlertIcon,
+	AlertTitle,
 	Box,
 	Button,
 	Container,
 	Flex,
 	FormControl,
+	FormErrorMessage,
 	FormLabel,
 	Heading,
 	Input,
@@ -13,20 +18,54 @@ import {
 	Text,
 } from '@chakra-ui/react';
 import { useFormik } from 'formik';
+import { userService } from '../../services/user.service';
+import * as Yup from 'yup';
+import { useRef, useState } from 'react';
+
+const validationSchema = Yup.object().shape({
+	email: Yup.string().email('Invalid email.').required('Email is required.'),
+	password: Yup.string()
+		.min(10, 'Password must be longer than 10 characters.')
+		.required('Password is required.'),
+	name: Yup.string()
+		.min(4, 'Name must be at least 4 characters.')
+		.max(20, 'Name must not be longer than 10 characters.')
+		.required('Name is required.'),
+});
 
 export default function SignUp() {
+	const [error, setError] = useState('');
+	const [success, setSuccess] = useState(false);
 	const formik = useFormik({
 		initialValues: {
 			email: '',
 			password: '',
 			name: '',
 		},
-		onSubmit: (values) => {
+		validationSchema,
+		onSubmit: async (values) => {
 			console.log(values);
-			setTimeout(() => {
-				//ending submission
+
+			try {
+				const response = await userService.signUp(
+					values.name,
+					values.email,
+					values.password,
+				);
+				console.log(response);
+				console.log('response:', response);
+				setSuccess(true);
+				setError('');
+			} catch (error: any) {
+				console.log(error);
+				if (error.response.status === 409)
+					setError('Email already exists! Please sign up with another email.');
+				if (error.response.status === 500) setError('Internal server error');
+				if (error.response.status === 400)
+					setError('Email or Password is invalid!');
 				formik.setSubmitting(false);
-			}, 2000);
+				setSuccess(false);
+			}
 		},
 	});
 
@@ -59,17 +98,32 @@ export default function SignUp() {
 							<form onSubmit={formik.handleSubmit}>
 								<Stack spacing="6">
 									<Stack spacing="5">
-										<FormControl>
+										<FormControl
+											isRequired
+											isInvalid={
+												formik.errors.name && formik.errors.name ? true : false
+											}
+										>
 											<FormLabel htmlFor="name">Name</FormLabel>
 											<Input
 												id="name"
 												type="name"
 												name="name"
+												isRequired
 												value={formik.values.name}
 												onChange={formik.handleChange}
+												onBlur={formik.handleBlur}
 											/>
+											<FormErrorMessage>{formik.errors.name}</FormErrorMessage>
 										</FormControl>
-										<FormControl>
+										<FormControl
+											isRequired
+											isInvalid={
+												formik.errors.email && formik.errors.email
+													? true
+													: false
+											}
+										>
 											<FormLabel htmlFor="email">Email</FormLabel>
 											<Input
 												id="email"
@@ -78,11 +132,20 @@ export default function SignUp() {
 												value={formik.values.email}
 												onChange={formik.handleChange}
 											/>
+											<FormErrorMessage>{formik.errors.email}</FormErrorMessage>
 										</FormControl>
-										<PasswordField
-											onChange={formik.handleChange}
-											value={formik.values.password}
-										/>
+										<FormControl
+											isInvalid={formik.errors.password ? true : false}
+										>
+											<PasswordField
+												isRequired
+												onChange={formik.handleChange}
+												value={formik.values.password}
+											/>
+											<FormErrorMessage>
+												{formik.errors.password}
+											</FormErrorMessage>
+										</FormControl>
 									</Stack>
 
 									<Stack spacing="6">
@@ -93,6 +156,20 @@ export default function SignUp() {
 										>
 											Create account
 										</Button>
+										{error && (
+											<Alert status="error">
+												<AlertIcon />
+												<AlertTitle>{error}</AlertTitle>
+											</Alert>
+										)}
+										{success && (
+											<Alert status="success">
+												<AlertIcon />
+												<AlertTitle>
+													Signed up successfully, signing in...
+												</AlertTitle>
+											</Alert>
+										)}
 									</Stack>
 									<Text color="fg.muted">
 										Already have an account?{' '}

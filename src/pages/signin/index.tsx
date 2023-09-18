@@ -18,16 +18,10 @@ import { GetServerSidePropsContext } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 
-import {
-	useSession,
-	signIn,
-	getProviders,
-	getCsrfToken,
-} from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { useState } from 'react';
 
 export default function SignIn() {
-	const { data: session } = useSession();
 	//TODO: add error display
 	const [error, setError] = useState(false);
 	const formik = useFormik({
