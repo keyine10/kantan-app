@@ -19,41 +19,36 @@ import {
 	useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AddIcon, HamburgerIcon } from '@chakra-ui/icons';
+import { AddIcon, HamburgerIcon, DeleteIcon } from '@chakra-ui/icons';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
+
+interface KanbanListProps {
+	list: KanbanListModel;
+	isDraggingList: boolean;
+	tasks: KanbanTaskModel[];
+
+	createTask: (listId: string) => void;
+	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
+	deleteTask: (id: string) => void;
+
+	updateList: (id: string, updatedlist: KanbanListModel) => void;
+	deleteList: (id: string) => void;
+}
 
 export default function KanbanList({
 	list,
 	isDraggingList,
-}: {
-	list: KanbanListModel;
-	isDraggingList: boolean;
-}) {
-	const [tasks, setTasks] = useState(list.tasks);
+	tasks,
+
+	createTask,
+	updateTask,
+	deleteTask,
+
+	updateList,
+	deleteList,
+}: KanbanListProps) {
 	const [isEditingListName, setIsEditingListName] = useState(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-	let tasksId = useMemo(
-		() => list.tasks.map((task: KanbanTaskModel) => task.id),
-		[list.tasks],
-	);
-
-	const handleCreateTask = () => {
-		console.log('Creating new task');
-		let newTask: KanbanTaskModel = {
-			id: Math.random().toString(36),
-			name: 'new task #' + list.tasks.length,
-			description: '',
-			position: 0,
-		};
-		setTasks([...tasks, newTask]);
-		list.tasks = [...list.tasks, newTask];
-	};
-
-	const handleRenameList = (event: any) => {
-		setIsEditingListName(false);
-		list.name = event.target.value;
-	};
 
 	const {
 		setNodeRef,
@@ -73,6 +68,24 @@ export default function KanbanList({
 	const style = {
 		transition,
 		transform: CSS.Translate.toString(transform),
+	};
+
+	let tasksId = useMemo(
+		() => tasks.map((task: KanbanTaskModel) => task.id),
+		[tasks],
+	);
+
+	const handleCreateTask = () => {
+		createTask(list.id);
+	};
+
+	const handleRenameList = (event: any) => {
+		setIsEditingListName(false);
+		updateList(list.id, { ...list, name: event.target.value });
+	};
+
+	const handleDeleteList = () => {
+		deleteList(list.id);
 	};
 	return (
 		<Box
@@ -112,6 +125,15 @@ export default function KanbanList({
 									onFocus={(event: any) => {
 										event.target.selectionEnd = event.target.value.length;
 									}}
+									onKeyDown={(event: any) => {
+										if (event.key === 'Enter') {
+											handleRenameList(event);
+											setIsEditingListName(false);
+										}
+										if (event.key === 'Escape') {
+											setIsEditingListName(false);
+										}
+									}}
 									ref={textareaRef}
 									autoFocus
 									size="sm"
@@ -141,15 +163,18 @@ export default function KanbanList({
 						_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
 						variant="ghost"
 						colorScheme="gray"
-						icon={<HamburgerIcon />}
+						icon={<DeleteIcon />}
+						onClick={handleDeleteList}
 					/>
 				</Flex>
-				<SortableContext items={tasksId} strategy={verticalListSortingStrategy}>
+				<SortableContext items={tasksId} strategy={rectSwappingStrategy}>
 					{tasks.map((task: KanbanTaskModel) => (
 						<KanbanCard
 							task={task}
 							key={task.id}
 							isDraggingList={isDraggingList}
+							updateTask={updateTask}
+							deleteTask={deleteTask}
 						/>
 					))}
 				</SortableContext>

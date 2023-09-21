@@ -8,18 +8,24 @@ import {
 	CardBody,
 } from '@chakra-ui/react';
 import { KanbanTaskModel } from '../../types/kanban-task';
-import { HamburgerIcon } from '@chakra-ui/icons';
+import { DeleteIcon, HamburgerIcon } from '@chakra-ui/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
 import { useRef, useState } from 'react';
+
+interface KanbanCardProps {
+	task: KanbanTaskModel;
+	isDraggingList: boolean;
+	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
+	deleteTask: (id: string) => void;
+}
 export default function KanbanCard({
 	task,
 	isDraggingList,
-}: {
-	task: KanbanTaskModel;
-	isDraggingList: boolean;
-}) {
+	updateTask,
+	deleteTask,
+}: KanbanCardProps) {
 	let buttonRef = useRef<HTMLButtonElement | null>(null);
 	const [isEditingTaskName, setIsEditingTaskName] = useState(false);
 
@@ -46,8 +52,13 @@ export default function KanbanCard({
 
 	const handleRenameTask = (event: any) => {
 		setIsEditingTaskName(false);
-		task.name = event.target.value;
+		updateTask(task.id, { ...task, name: event.target.value });
 	};
+
+	const handleDeleteTask = () => {
+		deleteTask(task.id);
+	};
+
 	const handleOnClickTask = () => {
 		setIsEditingTaskName(true);
 	};
@@ -74,7 +85,9 @@ export default function KanbanCard({
 					backgroundColor: 'gray.100',
 				}}
 				onMouseEnter={() => {
-					buttonRef.current!.style.display = 'block';
+					if (!isEditingTaskName && !isDragging)
+						buttonRef.current!.style.display = 'block';
+					else buttonRef.current!.style.display = 'none';
 				}}
 				onMouseLeave={() => {
 					buttonRef.current!.style.display = 'none';
@@ -95,6 +108,15 @@ export default function KanbanCard({
 							onFocus={(event: any) => {
 								event.target.selectionEnd = event.target.value.length;
 							}}
+							onKeyDown={(event: any) => {
+								if (event.key === 'Enter') {
+									handleRenameTask(event);
+									setIsEditingTaskName(false);
+								}
+								if (event.key === 'Escape') {
+									setIsEditingTaskName(false);
+								}
+							}}
 							autoFocus
 							bgColor="white"
 							minW={240}
@@ -104,16 +126,16 @@ export default function KanbanCard({
 							border={'none'}
 							p={1}
 							fontSize={16}
-							// focusBorderColor="none"
 							onClick={handleOnClickTask}
 							minW={240}
 							cursor={'pointer'}
+							minH={'1.5em'}
 						>
 							{task.name}
 						</Text>
 					)}
 					<IconButton
-						display="none"
+						display={'none'}
 						ref={buttonRef}
 						position={'absolute'}
 						aria-label="options"
@@ -128,7 +150,8 @@ export default function KanbanCard({
 						_groupHover={{
 							opacity: 0.25,
 						}}
-						icon={<HamburgerIcon />}
+						onClick={handleDeleteTask}
+						icon={<DeleteIcon />}
 					/>
 				</CardBody>
 			</Card>
