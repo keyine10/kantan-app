@@ -167,7 +167,7 @@ export default function KanbanList({
 						onClick={handleDeleteList}
 					/>
 				</Flex>
-				<SortableContext items={tasksId} strategy={rectSwappingStrategy}>
+				<SortableContext items={tasksId} strategy={verticalListSortingStrategy}>
 					{tasks.map((task: KanbanTaskModel) => (
 						<KanbanCard
 							task={task}

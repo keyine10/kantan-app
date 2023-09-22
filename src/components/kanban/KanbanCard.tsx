@@ -80,6 +80,7 @@ export default function KanbanCard({
 				minW={240}
 				maxW={304}
 				maxH={500}
+				zIndex={100}
 				bgColor={'white'}
 				_hover={{
 					backgroundColor: 'gray.100',

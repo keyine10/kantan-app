@@ -238,6 +238,7 @@ export default function KanbanBoard() {
 					(list) => list.id === active.id,
 				);
 				const overListIndex = lists.findIndex((list) => list.id === over.id);
+				//TODO:update list positions
 				setLists(arrayMove(lists, activeListIndex, overListIndex));
 			}
 		}
@@ -304,6 +305,11 @@ export default function KanbanBoard() {
 								key={activeList.id}
 								isDraggingList={isDraggingList}
 								tasks={tasks.filter((task) => task.listId === activeList.id)}
+								createTask={createTask}
+								updateTask={updateTask}
+								deleteTask={deleteTask}
+								updateList={updateList}
+								deleteList={deleteList}
 							/>
 						)}
 						{activeTask && (
@@ -311,6 +317,8 @@ export default function KanbanBoard() {
 								task={activeTask}
 								key={activeTask.id}
 								isDraggingList={isDraggingList}
+								updateTask={updateTask}
+								deleteTask={deleteTask}
 							/>
 						)}
 					</DragOverlay>,
