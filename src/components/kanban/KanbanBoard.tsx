@@ -198,10 +198,11 @@ export default function KanbanBoard() {
 				console.log('moving task from', activeTaskIndex, 'to', overTaskIndex);
 				tasks[activeTaskIndex].listId = tasks[overTaskIndex].listId;
 				//TODO: update position
+				//TODO: refactor again to nested list
 				tasks[activeTaskIndex].position = tasks[overTaskIndex].position - 1;
 				// setActiveTask(tasks[activeTaskIndex]);
 				return arrayMove(tasks, activeTaskIndex, overTaskIndex);
-				// return tasks;
+				// return [...tasks];
 			});
 		}
 		//dropping a task over a list: set task.listId = over.id
@@ -313,6 +314,7 @@ export default function KanbanBoard() {
 								list={activeList}
 								key={activeList.id}
 								isDraggingList={isDraggingList}
+								isDraggingTask={isDraggingTask}
 								tasks={tasks.filter((task) => task.listId === activeList.id)}
 								createTask={createTask}
 								updateTask={updateTask}

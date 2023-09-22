@@ -179,7 +179,7 @@ export default function KanbanList({
 				overflowY={'auto'}
 			>
 				<SortableContext items={[...tasksId]} strategy={rectSwappingStrategy}>
-					{sortedTasks.map((task: KanbanTaskModel) => (
+					{tasks.map((task: KanbanTaskModel) => (
 						<KanbanCard
 							task={task}
 							key={task.id}
