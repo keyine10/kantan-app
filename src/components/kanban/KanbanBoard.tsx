@@ -18,10 +18,12 @@ import {
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
+import { v4 as uuid } from 'uuid';
+
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 
 import { KanbanTaskModel } from '../../types/kanban-task';
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { AddIcon } from '@chakra-ui/icons';
 import { createPortal } from 'react-dom';
 import { store } from '../../config/store';
@@ -95,20 +97,20 @@ const mockBoard = {
 			id: '3',
 			name: 'new list 2334',
 			position: 8192,
-			tasks: [],
 		},
 	],
 };
 
 export default function KanbanBoard() {
 	// const board = useSyncedStore(store);
-	let [lists, setLists] = useState<KanbanListModel[]>([]);
+	let [lists, setLists] = useState<KanbanListModel[]>(mockBoard.lists);
 	let [tasks, setTasks] = useState<KanbanTaskModel[]>([]);
+	const dndId = useId();
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
-				distance: 5,
+				distance: 10,
 			},
 		}),
 	);
@@ -119,10 +121,11 @@ export default function KanbanBoard() {
 	const isDraggingList = activeList?.id
 		? listsId.includes(activeList.id)
 		: false;
+	const isDraggingTask = activeTask?.id ? true : false;
 
 	function handleCreateList(event: any) {
 		let newList: KanbanListModel = {
-			id: (Math.random() * 1).toString(),
+			id: uuid(),
 			name: 'new list #' + lists.length,
 			position: 0,
 		};
@@ -138,7 +141,7 @@ export default function KanbanBoard() {
 	function createTask(listId: string) {
 		console.log('Creating new task');
 		let newTask: KanbanTaskModel = {
-			id: Math.random().toString(36),
+			id: uuid(),
 			listId: listId,
 			name: 'new task #' + `${tasks.length + 1}`,
 			description: '',
@@ -183,7 +186,6 @@ export default function KanbanBoard() {
 
 		//dropping a task over another task
 		if (activeType === 'task' && overType === 'task') {
-			console.log('dropping task over another task');
 			console.log(active, over);
 			setTasks((tasks) => {
 				const activeTaskIndex = tasks.findIndex(
@@ -192,10 +194,11 @@ export default function KanbanBoard() {
 				const overTaskIndex = tasks.findIndex(
 					(task) => task.id === over.data.current?.task.id,
 				);
+				console.log('moving task from', activeTaskIndex, 'to', overTaskIndex);
 				tasks[activeTaskIndex].listId = tasks[overTaskIndex].listId;
 				//TODO: update position
 				tasks[activeTaskIndex].position = tasks[overTaskIndex].position - 1;
-				setActiveTask(tasks[activeTaskIndex]);
+				// setActiveTask(tasks[activeTaskIndex]);
 				return arrayMove(tasks, activeTaskIndex, overTaskIndex);
 			});
 		}
@@ -245,6 +248,7 @@ export default function KanbanBoard() {
 
 		return;
 	};
+
 	return (
 		<DndContext
 			collisionDetection={closestCorners}
@@ -252,10 +256,11 @@ export default function KanbanBoard() {
 			onDragEnd={handleDragEnd}
 			onDragOver={handleDragOver}
 			sensors={sensors}
+			id={dndId}
 		>
-			<Container maxW={'100%'} h={'100vh'}>
+			<Container maxW={'100%'} h={'99vh'}>
 				<HStack
-					minH="100%"
+					minH="50vh"
 					spacing={10}
 					alignItems={'start'}
 					overflow={'auto'}
@@ -276,6 +281,7 @@ export default function KanbanBoard() {
 									deleteTask={deleteTask}
 									updateList={updateList}
 									deleteList={deleteList}
+									isDraggingTask={isDraggingTask}
 									tasks={tasks.filter((task) => task.listId === list.id)}
 								/>
 							);

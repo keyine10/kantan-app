@@ -42,7 +42,7 @@ export default function KanbanCard({
 			type: 'task',
 			task,
 		},
-		disabled: isEditingTaskName,
+		disabled: isEditingTaskName || isDraggingList,
 	});
 
 	const style = {
@@ -69,18 +69,18 @@ export default function KanbanCard({
 			border={isDragging ? '2px dashed black' : 'none'}
 			ref={isDraggingList ? undefined : setNodeRef}
 			style={style}
-			{...attributes}
-			{...listeners}
 		>
 			<Card
+				{...attributes}
+				{...listeners}
 				opacity={isDragging ? 0 : 1}
 				as="div"
 				position="relative"
 				rounded={'lg'}
 				minW={240}
 				maxW={304}
-				maxH={500}
-				zIndex={100}
+				// maxH={500}
+				zIndex={isDragging ? 100 : 10}
 				bgColor={'white'}
 				_hover={{
 					backgroundColor: 'gray.100',

@@ -26,6 +26,7 @@ interface KanbanListProps {
 	list: KanbanListModel;
 	isDraggingList: boolean;
 	tasks: KanbanTaskModel[];
+	isDraggingTask: boolean;
 
 	createTask: (listId: string) => void;
 	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
@@ -38,6 +39,7 @@ interface KanbanListProps {
 export default function KanbanList({
 	list,
 	isDraggingList,
+	isDraggingTask,
 	tasks,
 
 	createTask,
@@ -89,7 +91,7 @@ export default function KanbanList({
 	};
 	return (
 		<Box
-			maxH={{ base: '98vh', xl: '99vh' }}
+			maxH={{ base: '94vh', xl: '93vh' }}
 			rounded={'lg'}
 			boxShadow={
 				isDragging
@@ -99,75 +101,77 @@ export default function KanbanList({
 			border={isDragging ? '2px dashed black' : 'none'}
 			bgColor={'gray.50'}
 			minWidth={'300px'}
+			maxWidth={'304px'}
 			ref={setNodeRef}
 			style={style}
 			zIndex={100}
 		>
+			<Flex direction="row" p={2}>
+				<div>
+					<Heading fontSize={'md'} {...attributes} {...listeners}>
+						{isEditingListName ? (
+							<AutoResizeTextarea
+								border={'none'}
+								fontSize={16}
+								resize={'none'}
+								defaultValue={list.name}
+								// focusBorderColor="none"
+								onBlur={handleRenameList}
+								onFocus={(event: any) => {
+									event.target.selectionEnd = event.target.value.length;
+								}}
+								onKeyDown={(event: any) => {
+									if (event.key === 'Enter') {
+										handleRenameList(event);
+										setIsEditingListName(false);
+									}
+									if (event.key === 'Escape') {
+										setIsEditingListName(false);
+									}
+								}}
+								ref={textareaRef}
+								autoFocus
+								size="sm"
+								bgColor="white"
+								minW={240}
+							/>
+						) : (
+							<Text
+								border={'none'}
+								p={1}
+								fontSize={16}
+								// focusBorderColor="none"
+								onClick={() => {
+									setIsEditingListName(true);
+								}}
+								minW={240}
+							>
+								{list.name}
+							</Text>
+						)}
+					</Heading>
+				</div>
+				<IconButton
+					aria-label="options"
+					size="md"
+					opacity={0.7}
+					_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
+					variant="ghost"
+					colorScheme="gray"
+					icon={<DeleteIcon />}
+					onClick={handleDeleteList}
+				/>
+			</Flex>
 			<Stack
 				direction={'column'}
 				spacing={4}
 				p={2}
-				maxH={'98%'}
+				maxH={'87vh'}
 				position={'relative'}
 				opacity={isDragging ? 0 : 1}
+				overflowY={'auto'}
 			>
-				<Flex direction="row">
-					<div>
-						<Heading fontSize={'md'} {...attributes} {...listeners}>
-							{isEditingListName ? (
-								<AutoResizeTextarea
-									border={'none'}
-									fontSize={16}
-									resize={'none'}
-									defaultValue={list.name}
-									// focusBorderColor="none"
-									onBlur={handleRenameList}
-									onFocus={(event: any) => {
-										event.target.selectionEnd = event.target.value.length;
-									}}
-									onKeyDown={(event: any) => {
-										if (event.key === 'Enter') {
-											handleRenameList(event);
-											setIsEditingListName(false);
-										}
-										if (event.key === 'Escape') {
-											setIsEditingListName(false);
-										}
-									}}
-									ref={textareaRef}
-									autoFocus
-									size="sm"
-									bgColor="white"
-									minW={240}
-								/>
-							) : (
-								<Text
-									border={'none'}
-									p={1}
-									fontSize={16}
-									// focusBorderColor="none"
-									onClick={() => {
-										setIsEditingListName(true);
-									}}
-									minW={240}
-								>
-									{list.name}
-								</Text>
-							)}
-						</Heading>
-					</div>
-					<IconButton
-						aria-label="options"
-						size="md"
-						opacity={0.7}
-						_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
-						variant="ghost"
-						colorScheme="gray"
-						icon={<DeleteIcon />}
-						onClick={handleDeleteList}
-					/>
-				</Flex>
-				<SortableContext items={tasksId} strategy={verticalListSortingStrategy}>
+				<SortableContext items={[...tasksId]} strategy={rectSwappingStrategy}>
 					{tasks.map((task: KanbanTaskModel) => (
 						<KanbanCard
 							task={task}
@@ -181,6 +185,7 @@ export default function KanbanList({
 				<Button
 					size="md"
 					width="100%"
+					minH={'50px'}
 					justifyContent={'start'}
 					leftIcon={<AddIcon />}
 					variant="ghost"
