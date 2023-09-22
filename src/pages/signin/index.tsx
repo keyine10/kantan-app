@@ -103,7 +103,7 @@ export default function SignIn() {
 									</FormControl>
 								</form>
 								<Text color="fg.muted">
-									Don't have an account?{' '}
+									{`Don't have an account? `}
 									<Link href="#" color="blue">
 										Sign up
 									</Link>
