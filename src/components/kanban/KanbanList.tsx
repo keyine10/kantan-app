@@ -28,7 +28,7 @@ interface KanbanListProps {
 	tasks: KanbanTaskModel[];
 	isDraggingTask: boolean;
 
-	createTask: (listId: string) => void;
+	createTask: (listId: string, position: number) => void;
 	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
 	deleteTask: (id: string) => void;
 
@@ -76,9 +76,16 @@ export default function KanbanList({
 		() => tasks.map((task: KanbanTaskModel) => task.id),
 		[tasks],
 	);
+	let sortedTasks = useMemo(
+		() =>
+			tasks.sort(
+				(a: KanbanTaskModel, b: KanbanTaskModel) => a.position - b.position,
+			),
+		[tasks],
+	);
 
 	const handleCreateTask = () => {
-		createTask(list.id);
+		createTask(list.id, sortedTasks.length * 10);
 	};
 
 	const handleRenameList = (event: any) => {
@@ -172,7 +179,7 @@ export default function KanbanList({
 				overflowY={'auto'}
 			>
 				<SortableContext items={[...tasksId]} strategy={rectSwappingStrategy}>
-					{tasks.map((task: KanbanTaskModel) => (
+					{sortedTasks.map((task: KanbanTaskModel) => (
 						<KanbanCard
 							task={task}
 							key={task.id}

@@ -127,7 +127,7 @@ export default function KanbanBoard() {
 		let newList: KanbanListModel = {
 			id: uuid(),
 			name: 'new list #' + lists.length,
-			position: 0,
+			position: lists.length * 10,
 		};
 		setLists([...lists, newList]);
 	}
@@ -138,16 +138,17 @@ export default function KanbanBoard() {
 		setLists(lists.filter((list) => list.id !== id));
 		setTasks(tasks.filter((task) => task.listId !== id));
 	}
-	function createTask(listId: string) {
+	function createTask(listId: string, position: number) {
 		console.log('Creating new task');
 		let newTask: KanbanTaskModel = {
 			id: uuid(),
 			listId: listId,
 			name: 'new task #' + `${tasks.length + 1}`,
 			description: '',
-			position: 0,
+			position: position,
 		};
 		setTasks([...tasks, newTask]);
+		console.log(newTask);
 	}
 
 	function updateTask(id: string, updatedTask: KanbanTaskModel) {
@@ -200,6 +201,7 @@ export default function KanbanBoard() {
 				tasks[activeTaskIndex].position = tasks[overTaskIndex].position - 1;
 				// setActiveTask(tasks[activeTaskIndex]);
 				return arrayMove(tasks, activeTaskIndex, overTaskIndex);
+				// return tasks;
 			});
 		}
 		//dropping a task over a list: set task.listId = over.id
@@ -260,10 +262,11 @@ export default function KanbanBoard() {
 		>
 			<Container maxW={'100%'} h={'99vh'}>
 				<HStack
-					minH="50vh"
+					minH="99vh"
 					spacing={10}
 					alignItems={'start'}
-					overflow={'auto'}
+					overflowX={'auto'}
+					overflowY={'hidden'}
 					p={'4'}
 				>
 					<SortableContext
