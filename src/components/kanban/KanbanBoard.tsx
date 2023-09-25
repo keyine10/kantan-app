@@ -31,72 +31,76 @@ import { useSyncedStore } from '@syncedstore/react';
 import KanbanCard from './KanbanCard';
 
 const mockBoard = {
-	tasks: [
-		{
-			id: '1',
-			listId: '1',
-			name: 'new task',
-			description: 'new task description 1',
-			position: 1,
-		},
-		{
-			id: '2',
-			listId: '1',
-			name: 'new task 1',
-			description: 'new task description 2',
-			position: 2,
-		},
-		{
-			id: '7',
-			listId: '2',
-			name: 'new task',
-			description: 'new task description 1',
-			position: 1,
-		},
-		{
-			id: '8',
-			listId: '2',
-			name: 'new task 1',
-			description: 'new task description 2',
-			position: 2,
-		},
-		{
-			id: '4',
-			listId: '3',
-			name: 'new task',
-			description: 'new task description 1',
-			position: 1,
-		},
-		{
-			id: '5',
-			listId: '3',
-			name: 'new task 1',
-			description: 'new task description 2',
-			position: 2,
-		},
-		{
-			id: '6',
-			listId: '3',
-			name: 'new task 2',
-			description: 'new task description 3',
-			position: 3,
-		},
-	],
 	lists: [
 		{
-			id: '1',
+			id: 'A',
 			name: 'updated name for list',
 			position: 1024,
+			tasks: [
+				{
+					id: '1',
+					listId: 'A',
+					name: 'new task',
+					description: 'new task description 1',
+					position: 1,
+				},
+				{
+					id: '2',
+					listId: 'A',
+					name: 'new task 1',
+					description: 'new task description 2',
+					position: 2,
+				},
+			],
 		},
 		{
-			id: '2',
+			id: 'B',
 			name: 'new list 2334',
 			position: 16384,
+			tasks: [
+				{
+					id: '7',
+					listId: 'B',
+					name: 'new task',
+					description: 'new task description 1',
+					position: 1,
+				},
+				{
+					id: '8',
+					listId: 'B',
+					name: 'new task 1',
+					description: 'new task description 2',
+					position: 2,
+				},
+			],
 		},
 		{
-			id: '3',
+			id: 'C',
 			name: 'new list 2334',
 			position: 8192,
+			tasks: [
+				{
+					id: '4',
+					listId: 'C',
+					name: 'new task',
+					description: 'new task description 1',
+					position: 1,
+				},
+				{
+					id: '5',
+					listId: 'C',
+					name: 'new task 1',
+					description: 'new task description 2',
+					position: 2,
+				},
+				{
+					id: '6',
+					listId: 'C',
+					name: 'new task 2',
+					description: 'new task description 3',
+					position: 3,
+				},
+			],
 		},
 	],
 };
@@ -104,7 +108,6 @@ const mockBoard = {
 export default function KanbanBoard() {
 	// const board = useSyncedStore(store);
 	let [lists, setLists] = useState<KanbanListModel[]>(mockBoard.lists);
-	let [tasks, setTasks] = useState<KanbanTaskModel[]>([]);
 	const dndId = useId();
 
 	const sensors = useSensors(
@@ -123,39 +126,68 @@ export default function KanbanBoard() {
 		: false;
 	const isDraggingTask = activeTask?.id ? true : false;
 
+	function findList(listId: string) {
+		console.log('finding list', listId);
+		return lists.findIndex((list) => list.id === listId);
+	}
+
 	function handleCreateList(event: any) {
-		let newList: KanbanListModel = {
+		let newLists: KanbanListModel = {
 			id: uuid(),
 			name: 'new list #' + lists.length,
 			position: lists.length * 10,
+			tasks: [],
 		};
-		setLists([...lists, newList]);
+		setLists([...lists, newLists]);
 	}
 	function updateList(id: string, updatedList: KanbanListModel) {
 		setLists(lists.map((list) => (list.id === id ? updatedList : list)));
 	}
 	function deleteList(id: string) {
 		setLists(lists.filter((list) => list.id !== id));
-		setTasks(tasks.filter((task) => task.listId !== id));
 	}
 	function createTask(listId: string, position: number) {
 		console.log('Creating new task');
 		let newTask: KanbanTaskModel = {
 			id: uuid(),
 			listId: listId,
-			name: 'new task #' + `${tasks.length + 1}`,
+			name:
+				'new task #' + lists.find((list) => list.id === listId)?.tasks.length,
 			description: '',
 			position: position,
 		};
-		setTasks([...tasks, newTask]);
+		setLists((lists) =>
+			lists.map((list) => {
+				if (list.id === listId) {
+					list.tasks.push(newTask);
+				}
+				return list;
+			}),
+		);
 		console.log(newTask);
 	}
 
 	function updateTask(id: string, updatedTask: KanbanTaskModel) {
-		setTasks(tasks.map((task) => (task.id === id ? updatedTask : task)));
+		setLists(
+			lists.map((list) => {
+				if (list.id === updatedTask.listId) {
+					list.tasks = list.tasks.map((task) =>
+						task.id === id ? updatedTask : task,
+					);
+				}
+				return list;
+			}),
+		);
 	}
-	function deleteTask(id: string) {
-		setTasks(tasks.filter((task) => task.id !== id));
+	function deleteTask(id: string, listId: string) {
+		setLists(
+			lists.map((list) => {
+				if (list.id === listId) {
+					list.tasks = list.tasks.filter((task) => task.id !== id);
+				}
+				return list;
+			}),
+		);
 	}
 
 	function handleDragStart(event: any) {
@@ -185,45 +217,101 @@ export default function KanbanBoard() {
 		//TODO: update position after moving
 		if (!activeType) return;
 
-		//dropping a task over another task
-		if (activeType === 'task' && overType === 'task') {
-			console.log(active, over);
-			setTasks((tasks) => {
-				const activeTaskIndex = tasks.findIndex(
-					(task) => task.id === active.data.current?.task.id,
-				);
-				const overTaskIndex = tasks.findIndex(
-					(task) => task.id === over.data.current?.task.id,
-				);
-				console.log('moving task from', activeTaskIndex, 'to', overTaskIndex);
-				tasks[activeTaskIndex].listId = tasks[overTaskIndex].listId;
-				//TODO: update position
-				//TODO: refactor again to nested list
-				tasks[activeTaskIndex].position = tasks[overTaskIndex].position - 1;
-				// setActiveTask(tasks[activeTaskIndex]);
-				return arrayMove(tasks, activeTaskIndex, overTaskIndex);
-				// return [...tasks];
-			});
+		if (activeType === 'list') {
+			return;
 		}
-		//dropping a task over a list: set task.listId = over.id
-		if (activeType === 'task' && overType === 'list') {
-			console.log('dropping task over list');
-			setTasks((tasks) => {
-				const activeTaskIndex = tasks.findIndex(
-					(task) => task.id === active.data.current?.task.id,
-				);
-				tasks[activeTaskIndex].listId = over.id;
-				return arrayMove(tasks, activeTaskIndex, activeTaskIndex);
-			});
-		}
-		// if (activeType === 'list' && overType === 'list') {
-		// 	const activeListIndex = lists.findIndex((list) => list.id === active.id);
-		// 	const overListIndex = lists.findIndex((list) => list.id === over.id);
-		// 	setLists(arrayMove(lists, activeListIndex, overListIndex));
-		// 	console.log('dragging a list');
-		// }
-	};
 
+		// Handle Items Sorting
+		if (activeType === 'task' && overType === 'task') {
+			// console.log(active.data.current.task.listId);
+
+			// Find the index of active and over list inside lists array
+			let activeListIndex = findList(active.data.current.task.listId);
+			let overListIndex = findList(over.data.current.task.listId);
+
+			// If active or over list is not found, return
+			if (!lists[activeListIndex] || !lists[overListIndex]) {
+				return;
+			}
+
+			// Find the index of the active and over task
+
+			let activeTaskIndex = lists[activeListIndex].tasks.findIndex(
+				(task) => task.id === active.data.current.task.id,
+			);
+			let overTaskIndex = lists[overListIndex].tasks.findIndex(
+				(task) => task.id === over.data.current.task.id,
+			);
+
+			console.log(
+				'Moving task from list #',
+				activeListIndex,
+				'position',
+				activeTaskIndex,
+				'to list #',
+				overListIndex,
+				'position',
+				overTaskIndex,
+			);
+
+			// Sorting items in the same list
+			//TODO: Make this work, its bugged rn
+			if (activeListIndex === overListIndex) {
+				setLists((lists) => {
+					console.log('moving tasks from the same list');
+					let newLists = [...lists];
+					console.log('before moving', newLists[activeListIndex].tasks);
+					let currentTasks = arrayMove(
+						newLists[activeListIndex].tasks,
+						activeTaskIndex,
+						overTaskIndex,
+					);
+					console.log('after moving', currentTasks);
+					newLists[activeListIndex].tasks.splice(
+						0,
+						currentTasks.length,
+						...currentTasks,
+					);
+					console.log(newLists[activeListIndex].tasks);
+					return lists;
+				});
+			} else {
+				// Sorting items in different lists
+				let newLists = [...lists];
+				let [removedTask] = newLists[activeListIndex].tasks.splice(
+					activeTaskIndex,
+					1,
+				);
+				removedTask.listId = over.data.current.task.listId;
+				newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
+				setLists(newLists);
+			}
+		}
+		//Dropping an item into a list
+		if (activeType === 'task' && overType === 'list') {
+			console.log('dropping item into a list');
+			let activeListIndex = findList(active.data.current.task.listId);
+			let overListIndex = lists.findIndex((list) => list.id === over.id);
+			// If active or over list is not found, return
+			if (!lists[activeListIndex] || !lists[overListIndex]) {
+				return;
+			}
+
+			// Find the index of the active task
+			let activeTaskIndex = lists[activeListIndex].tasks.findIndex(
+				(task) => task.id === active.data.current.task.id,
+			);
+			// Remove task from active list and add to over list
+			let newLists = [...lists];
+			const [removedTask] = newLists[activeListIndex].tasks.splice(
+				activeTaskIndex,
+				1,
+			);
+			removedTask.listId = over.id;
+			newLists[overListIndex].tasks.push(removedTask);
+			setLists(newLists);
+		}
+	};
 	const handleDragEnd = (event: any) => {
 		// task and list after drag end are updated
 		console.log(activeTask);
@@ -238,7 +326,9 @@ export default function KanbanBoard() {
 		const overType = over.data.current?.type;
 
 		if (!over) return;
-		if (activeType === 'list' && overType === 'list') {
+
+		// handle list sorting
+		if (activeType === 'list' && overType === 'list' && active.id !== over.id) {
 			if (active.id !== over.id) {
 				const activeListIndex = lists.findIndex(
 					(list) => list.id === active.id,
@@ -249,9 +339,99 @@ export default function KanbanBoard() {
 			}
 		}
 
+		// // Handle Items Sorting
+		// if (activeType === 'task' && overType === 'task') {
+		// 	// console.log(active.data.current.task.listId);
+
+		// 	// Find the index of active and over list inside lists array
+		// 	let activeListIndex = findList(active.data.current.task.listId);
+		// 	let overListIndex = findList(over.data.current.task.listId);
+
+		// 	// If active or over list is not found, return
+		// 	if (!lists[activeListIndex] || !lists[overListIndex]) {
+		// 		return;
+		// 	}
+
+		// 	// Find the index of the active and over task
+
+		// 	let activeTaskIndex = lists[activeListIndex].tasks.findIndex(
+		// 		(task) => task.id === active.data.current.task.id,
+		// 	);
+		// 	let overTaskIndex = lists[overListIndex].tasks.findIndex(
+		// 		(task) => task.id === over.data.current.task.id,
+		// 	);
+
+		// 	console.log(
+		// 		'Moving task from list #',
+		// 		activeListIndex,
+		// 		'position',
+		// 		activeTaskIndex,
+		// 		'to list #',
+		// 		overListIndex,
+		// 		'position',
+		// 		overTaskIndex,
+		// 	);
+
+		// 	// Sorting items in the same list
+		// 	if (activeListIndex === overListIndex) {
+		// 		setLists((lists) => {
+		// 			console.log('moving tasks from the same list');
+		// 			let newLists = [...lists];
+		// 			console.log('before moving', newLists[activeListIndex].tasks);
+		// 			let currentTasks = [...newLists[activeListIndex].tasks];
+		// 			currentTasks = arrayMove(
+		// 				currentTasks,
+		// 				activeTaskIndex,
+		// 				overTaskIndex,
+		// 			);
+		// 			console.log('after moving', currentTasks);
+		// 			newLists[activeListIndex].tasks.splice(
+		// 				0,
+		// 				currentTasks.length,
+		// 				...currentTasks,
+		// 			);
+		// 			console.log(newLists[activeListIndex].tasks);
+		// 			return lists;
+		// 		});
+		// 	} else {
+		// 		// Sorting items in different lists
+		// 		let newLists = [...lists];
+		// 		let [removedTask] = newLists[activeListIndex].tasks.splice(
+		// 			activeTaskIndex,
+		// 			1,
+		// 		);
+		// 		newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
+		// 		removedTask.listId = over.data.current.task.listId;
+
+		// 		setLists(newLists);
+		// 	}
+		// }
+		// //Dropping an item into a list
+		// if (activeType === 'task' && overType === 'list') {
+		// 	console.log('dropping item into a list');
+		// 	let activeListIndex = findList(active.data.current.task.listId);
+		// 	let overListIndex = lists.findIndex((list) => list.id === over.id);
+		// 	// If active or over list is not found, return
+		// 	if (!lists[activeListIndex] || !lists[overListIndex]) {
+		// 		return;
+		// 	}
+
+		// 	// Find the index of the active task
+		// 	let activeTaskIndex = lists[activeListIndex].tasks.findIndex(
+		// 		(task) => task.id === active.data.current.task.id,
+		// 	);
+		// 	// Remove task from active list and add to over list
+		// 	let newLists = [...lists];
+		// 	const [removedTask] = newLists[activeListIndex].tasks.splice(
+		// 		activeTaskIndex,
+		// 		1,
+		// 	);
+		// 	newLists[overListIndex].tasks.push(removedTask);
+		// 	setLists(newLists);
+		// }
+
 		return;
 	};
-
 	return (
 		<DndContext
 			collisionDetection={closestCorners}
@@ -280,13 +460,13 @@ export default function KanbanBoard() {
 									list={list}
 									key={list.id}
 									isDraggingList={isDraggingList}
+									isDraggingTask={isDraggingTask}
 									createTask={createTask}
 									updateTask={updateTask}
 									deleteTask={deleteTask}
 									updateList={updateList}
 									deleteList={deleteList}
-									isDraggingTask={isDraggingTask}
-									tasks={tasks.filter((task) => task.listId === list.id)}
+									tasks={list.tasks}
 								/>
 							);
 						})}
@@ -315,7 +495,7 @@ export default function KanbanBoard() {
 								key={activeList.id}
 								isDraggingList={isDraggingList}
 								isDraggingTask={isDraggingTask}
-								tasks={tasks.filter((task) => task.listId === activeList.id)}
+								tasks={activeList.tasks}
 								createTask={createTask}
 								updateTask={updateTask}
 								deleteTask={deleteTask}
@@ -328,8 +508,6 @@ export default function KanbanBoard() {
 								task={activeTask}
 								key={activeTask.id}
 								isDraggingList={isDraggingList}
-								updateTask={updateTask}
-								deleteTask={deleteTask}
 							/>
 						)}
 					</DragOverlay>,

@@ -18,7 +18,7 @@ interface KanbanCardProps {
 	task: KanbanTaskModel;
 	isDraggingList: boolean;
 	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
-	deleteTask: (id: string) => void;
+	deleteTask: (id: string, listId: string) => void;
 }
 export default function KanbanCard({
 	task,
@@ -56,7 +56,7 @@ export default function KanbanCard({
 	};
 
 	const handleDeleteTask = () => {
-		deleteTask(task.id);
+		deleteTask(task.id, task.listId);
 	};
 
 	const handleOnClickTask = () => {
@@ -66,14 +66,13 @@ export default function KanbanCard({
 	return (
 		<Box
 			// opacity={isDragging ? 1 : 0}
-			border={isDragging ? '2px dashed black' : 'none'}
 			ref={isDraggingList ? undefined : setNodeRef}
 			style={style}
+			{...attributes}
+			{...listeners}
 		>
 			<Card
-				{...attributes}
-				{...listeners}
-				opacity={isDragging ? 0 : 1}
+				opacity={isDragging ? 0.5 : 1}
 				as="div"
 				position="relative"
 				rounded={'lg'}

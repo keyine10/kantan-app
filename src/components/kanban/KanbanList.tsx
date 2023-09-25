@@ -30,7 +30,7 @@ interface KanbanListProps {
 
 	createTask: (listId: string, position: number) => void;
 	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
-	deleteTask: (id: string) => void;
+	deleteTask: (id: string, listId: string) => void;
 
 	updateList: (id: string, updatedlist: KanbanListModel) => void;
 	deleteList: (id: string) => void;
@@ -40,8 +40,6 @@ export default function KanbanList({
 	list,
 	isDraggingList,
 	isDraggingTask,
-	tasks,
-
 	createTask,
 	updateTask,
 	deleteTask,
@@ -72,16 +70,18 @@ export default function KanbanList({
 		transform: CSS.Translate.toString(transform),
 	};
 
-	let tasksId = useMemo(
-		() => tasks.map((task: KanbanTaskModel) => task.id),
-		[tasks],
-	);
+	// let tasksId = useMemo(
+	// 	() => list.tasks.map((task: KanbanTaskModel) => task.id),
+	// 	[list.tasks.length],
+	// );
+	let tasksId = list.tasks.map((task: KanbanTaskModel) => task.id);
+
 	let sortedTasks = useMemo(
 		() =>
-			tasks.sort(
+			list.tasks.sort(
 				(a: KanbanTaskModel, b: KanbanTaskModel) => a.position - b.position,
 			),
-		[tasks],
+		[list.tasks],
 	);
 
 	const handleCreateTask = () => {
@@ -113,7 +113,7 @@ export default function KanbanList({
 			style={style}
 			zIndex={100}
 		>
-			<Flex direction="row" p={2}>
+			<Flex direction="row" p={2} opacity={isDragging ? 0 : 1}>
 				<div>
 					<Heading fontSize={'md'} {...attributes} {...listeners}>
 						{isEditingListName ? (
@@ -178,8 +178,8 @@ export default function KanbanList({
 				opacity={isDragging ? 0 : 1}
 				overflowY={'auto'}
 			>
-				<SortableContext items={[...tasksId]} strategy={rectSwappingStrategy}>
-					{tasks.map((task: KanbanTaskModel) => (
+				<SortableContext items={tasksId} strategy={verticalListSortingStrategy}>
+					{list.tasks.map((task: KanbanTaskModel) => (
 						<KanbanCard
 							task={task}
 							key={task.id}
