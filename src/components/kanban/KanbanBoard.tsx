@@ -40,7 +40,7 @@ const mockBoard = {
 				{
 					id: '1',
 					listId: 'A',
-					name: 'new task',
+					name: 'very long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long ',
 					description: 'new task description 1',
 					position: 1,
 				},
@@ -127,7 +127,7 @@ export default function KanbanBoard() {
 	const isDraggingTask = activeTask?.id ? true : false;
 
 	function findList(listId: string) {
-		console.log('finding list', listId);
+		// console.log('finding list', listId);
 		return lists.findIndex((list) => list.id === listId);
 	}
 
@@ -156,14 +156,10 @@ export default function KanbanBoard() {
 			description: '',
 			position: position,
 		};
-		setLists((lists) =>
-			lists.map((list) => {
-				if (list.id === listId) {
-					list.tasks.push(newTask);
-				}
-				return list;
-			}),
-		);
+		setLists((lists) => {
+			lists.find((list) => list.id === listId)?.tasks.push(newTask);
+			return [...lists];
+		});
 		console.log(newTask);
 	}
 
@@ -208,7 +204,7 @@ export default function KanbanBoard() {
 
 	const handleDragOver = (event: any) => {
 		const { active, over } = event;
-		if (!over) return;
+		if (!active || !over) return;
 		if (active.id === over.id) {
 			return;
 		}
@@ -243,48 +239,34 @@ export default function KanbanBoard() {
 				(task) => task.id === over.data.current.task.id,
 			);
 
-			console.log(
-				'Moving task from list #',
-				activeListIndex,
-				'position',
-				activeTaskIndex,
-				'to list #',
-				overListIndex,
-				'position',
-				overTaskIndex,
-			);
+			// console.log(
+			// 	'Moving task from list #',
+			// 	activeListIndex,
+			// 	'position',
+			// 	activeTaskIndex,
+			// 	'to list #',
+			// 	overListIndex,
+			// 	'position',
+			// 	overTaskIndex,
+			// );
 
-			// Sorting items in the same list
-			//TODO: Make this work, its bugged rn
-			if (activeListIndex === overListIndex) {
-				setLists((lists) => {
-					console.log('moving tasks from the same list');
-					let newLists = [...lists];
-					console.log('before moving', newLists[activeListIndex].tasks);
-					let currentTasks = arrayMove(
-						newLists[activeListIndex].tasks,
-						activeTaskIndex,
-						overTaskIndex,
-					);
-					console.log('after moving', currentTasks);
-					newLists[activeListIndex].tasks.splice(
-						0,
-						currentTasks.length,
-						...currentTasks,
-					);
-					console.log(newLists[activeListIndex].tasks);
-					return lists;
-				});
-			} else {
+			//only call setLists here if the lists are not the same
+
+			if (activeListIndex !== overListIndex) {
 				// Sorting items in different lists
-				let newLists = [...lists];
-				let [removedTask] = newLists[activeListIndex].tasks.splice(
-					activeTaskIndex,
-					1,
-				);
-				removedTask.listId = over.data.current.task.listId;
-				newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
-				setLists(newLists);
+				setLists((lists) => {
+					let newLists = lists;
+					let [removedTask] = newLists[activeListIndex].tasks.splice(
+						activeTaskIndex,
+						1,
+					);
+					removedTask.listId = over.data.current.task.listId;
+
+					newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
+					return newLists;
+				});
+
+				// setLists(newLists);
 			}
 		}
 		//Dropping an item into a list
@@ -322,10 +304,9 @@ export default function KanbanBoard() {
 		setActiveList(null);
 
 		const { active, over } = event;
+		if (!over) return;
 		const activeType = active.data.current?.type;
 		const overType = over.data.current?.type;
-
-		if (!over) return;
 
 		// handle list sorting
 		if (activeType === 'list' && overType === 'list' && active.id !== over.id) {
@@ -339,61 +320,51 @@ export default function KanbanBoard() {
 			}
 		}
 
-		// // Handle Items Sorting
-		// if (activeType === 'task' && overType === 'task') {
-		// 	// console.log(active.data.current.task.listId);
+		// Handle Items Sorting
+		if (activeType === 'task' && overType === 'task') {
+			// Find the index of active and over list inside lists array
+			let activeListIndex = findList(active.data.current.task.listId);
+			let overListIndex = findList(over.data.current.task.listId);
 
-		// 	// Find the index of active and over list inside lists array
-		// 	let activeListIndex = findList(active.data.current.task.listId);
-		// 	let overListIndex = findList(over.data.current.task.listId);
+			// If active or over list is not found, return
+			if (!lists[activeListIndex] || !lists[overListIndex]) {
+				return;
+			}
 
-		// 	// If active or over list is not found, return
-		// 	if (!lists[activeListIndex] || !lists[overListIndex]) {
-		// 		return;
-		// 	}
+			// Find the index of the active and over task
 
-		// 	// Find the index of the active and over task
+			let activeTaskIndex = lists[activeListIndex].tasks.findIndex(
+				(task) => task.id === active.data.current.task.id,
+			);
+			let overTaskIndex = lists[overListIndex].tasks.findIndex(
+				(task) => task.id === over.data.current.task.id,
+			);
 
-		// 	let activeTaskIndex = lists[activeListIndex].tasks.findIndex(
-		// 		(task) => task.id === active.data.current.task.id,
-		// 	);
-		// 	let overTaskIndex = lists[overListIndex].tasks.findIndex(
-		// 		(task) => task.id === over.data.current.task.id,
-		// 	);
-
-		// 	console.log(
-		// 		'Moving task from list #',
-		// 		activeListIndex,
-		// 		'position',
-		// 		activeTaskIndex,
-		// 		'to list #',
-		// 		overListIndex,
-		// 		'position',
-		// 		overTaskIndex,
-		// 	);
-
-		// 	// Sorting items in the same list
-		// 	if (activeListIndex === overListIndex) {
-		// 		setLists((lists) => {
-		// 			console.log('moving tasks from the same list');
-		// 			let newLists = [...lists];
-		// 			console.log('before moving', newLists[activeListIndex].tasks);
-		// 			let currentTasks = [...newLists[activeListIndex].tasks];
-		// 			currentTasks = arrayMove(
-		// 				currentTasks,
-		// 				activeTaskIndex,
-		// 				overTaskIndex,
-		// 			);
-		// 			console.log('after moving', currentTasks);
-		// 			newLists[activeListIndex].tasks.splice(
-		// 				0,
-		// 				currentTasks.length,
-		// 				...currentTasks,
-		// 			);
-		// 			console.log(newLists[activeListIndex].tasks);
-		// 			return lists;
-		// 		});
-		// 	} else {
+			if (activeListIndex === overListIndex) {
+				setLists((lists) => {
+					// console.log('moving tasks from the same list');
+					let newLists = [...lists];
+					// console.log('before moving', newLists[activeListIndex].tasks);
+					let currentTasks = arrayMove(
+						newLists[activeListIndex].tasks,
+						activeTaskIndex,
+						overTaskIndex,
+					);
+					// console.log('after moving', currentTasks);
+					newLists[activeListIndex].tasks.splice(
+						0,
+						currentTasks.length,
+						...currentTasks,
+					);
+					// console.log(newLists[activeListIndex].tasks);
+					return lists;
+				});
+			} else {
+				// Moving items between lists
+				// TODO: api calls here
+			}
+		}
+		// else {
 		// 		// Sorting items in different lists
 		// 		let newLists = [...lists];
 		// 		let [removedTask] = newLists[activeListIndex].tasks.splice(
@@ -441,14 +412,33 @@ export default function KanbanBoard() {
 			sensors={sensors}
 			id={dndId}
 		>
-			<Container maxW={'100%'} h={'99vh'}>
+			<Container maxW={'100%'} h={'92.9vh'} bgColor={'blue.100'} p={0}>
 				<HStack
-					minH="99vh"
-					spacing={10}
+					h="100%"
+					spacing={8}
 					alignItems={'start'}
 					overflowX={'auto'}
 					overflowY={'hidden'}
-					p={'4'}
+					pt={4}
+					pl={4}
+					css={{
+						'scrollbar-color': 'auto',
+
+						'&::-webkit-scrollbar': {
+							width: '16px',
+							height: '16px',
+						},
+						'&::-webkit-scrollbar-track': {
+							width: '0px',
+							border: 'solid 10px transparent',
+						},
+						'&::-webkit-scrollbar-thumb': {
+							background: 'black',
+							borderRadius: '16px',
+							backgroundClip: 'content-box',
+							border: 'solid 3px transparent',
+						},
+					}}
 				>
 					<SortableContext
 						items={listsId}
@@ -508,6 +498,8 @@ export default function KanbanBoard() {
 								task={activeTask}
 								key={activeTask.id}
 								isDraggingList={isDraggingList}
+								updateTask={updateTask}
+								deleteTask={deleteTask}
 							/>
 						)}
 					</DragOverlay>,

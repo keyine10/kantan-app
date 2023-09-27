@@ -6,9 +6,15 @@ import {
 	CardHeader,
 	Text,
 	CardBody,
+	Menu,
+	MenuButton,
+	MenuList,
+	MenuItem,
+	Portal,
+	CardFooter,
 } from '@chakra-ui/react';
 import { KanbanTaskModel } from '../../types/kanban-task';
-import { DeleteIcon, HamburgerIcon } from '@chakra-ui/icons';
+import { DeleteIcon, EditIcon, HamburgerIcon } from '@chakra-ui/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
@@ -81,17 +87,14 @@ export default function KanbanCard({
 				// maxH={500}
 				zIndex={isDragging ? 100 : 10}
 				bgColor={'white'}
-				_hover={{
-					backgroundColor: 'gray.100',
-				}}
-				onMouseEnter={() => {
-					if (!isEditingTaskName && !isDragging)
-						buttonRef.current!.style.display = 'block';
-					else buttonRef.current!.style.display = 'none';
-				}}
-				onMouseLeave={() => {
-					buttonRef.current!.style.display = 'none';
-				}}
+				// onMouseEnter={() => {
+				// 	if (!isEditingTaskName && !isDragging)
+				// 		buttonRef.current!.style.display = 'block';
+				// 	else buttonRef.current!.style.display = 'none';
+				// }}
+				// onMouseLeave={() => {
+				// 	buttonRef.current!.style.display = 'none';
+				// }}
 				key={task.id}
 				boxShadow={
 					'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;'
@@ -126,7 +129,7 @@ export default function KanbanCard({
 							border={'none'}
 							p={1}
 							fontSize={16}
-							onClick={handleOnClickTask}
+							// onClick={handleOnClickTask}
 							minW={240}
 							cursor={'pointer'}
 							minH={'1.5em'}
@@ -134,12 +137,41 @@ export default function KanbanCard({
 							{task.name}
 						</Text>
 					)}
-					<IconButton
+					<Menu isLazy>
+						<MenuButton
+							disabled={isDragging || isEditingTaskName}
+							display={isEditingTaskName ? 'none' : 'block'}
+							as={IconButton}
+							aria-label="Options"
+							icon={<HamburgerIcon />}
+							variant="outline"
+							position={'absolute'}
+							top={1}
+							right={1}
+							zIndex={100}
+							size="md"
+							opacity={0.3}
+							_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
+							colorScheme="gray"
+						/>
+						<Portal appendToParentPortal={false}>
+							<MenuList zIndex={1000} minWidth={10} px={2}>
+								<MenuItem icon={<EditIcon />}>Open Task...</MenuItem>
+								<MenuItem onClick={handleOnClickTask} icon={<EditIcon />}>
+									Edit Task Name
+								</MenuItem>
+								<MenuItem onClick={handleDeleteTask} icon={<DeleteIcon />}>
+									Delete Task
+								</MenuItem>
+							</MenuList>
+						</Portal>
+					</Menu>
+					{/* <IconButton
 						display={'none'}
 						ref={buttonRef}
 						position={'absolute'}
 						aria-label="options"
-						top={1}
+						top={10}
 						right={1}
 						zIndex={100}
 						size="md"
@@ -150,9 +182,9 @@ export default function KanbanCard({
 						_groupHover={{
 							opacity: 0.25,
 						}}
-						onClick={handleDeleteTask}
+						// onClick={handleDeleteTask}
 						icon={<DeleteIcon />}
-					/>
+					/> */}
 				</CardBody>
 			</Card>
 		</Box>

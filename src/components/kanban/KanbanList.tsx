@@ -6,6 +6,7 @@ import {
 	Button,
 	IconButton,
 	Flex,
+	Textarea,
 } from '@chakra-ui/react';
 import { KanbanListModel } from '../../types/kanban-list';
 import KanbanCard from './KanbanCard';
@@ -48,6 +49,7 @@ export default function KanbanList({
 	deleteList,
 }: KanbanListProps) {
 	const [isEditingListName, setIsEditingListName] = useState(false);
+	const [isCreatingNewTask, setIsCreatingNewTask] = useState(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	const {
@@ -84,7 +86,10 @@ export default function KanbanList({
 		[list.tasks],
 	);
 
-	const handleCreateTask = () => {
+	const handleCreateTask = (event: any) => {
+		//fix duplicate create task by creating a new task while editing task name
+		event.stopPropagation();
+		setIsCreatingNewTask(false);
 		createTask(list.id, sortedTasks.length * 10);
 	};
 
@@ -171,13 +176,29 @@ export default function KanbanList({
 			</Flex>
 			<Stack
 				direction={'column'}
-				spacing={4}
+				spacing={2.5}
 				p={2}
-				maxH={'87vh'}
+				maxH={'75.5vh'}
 				position={'relative'}
 				opacity={isDragging ? 0 : 1}
 				overflowY={'auto'}
+				css={{
+					'&::-webkit-scrollbar': {
+						width: '10px',
+					},
+					'&::-webkit-scrollbar-track': {
+						width: '0px',
+						border: 'solid 10px transparent',
+					},
+					'&::-webkit-scrollbar-thumb': {
+						background: 'black',
+						borderRadius: '16px',
+						backgroundClip: 'content-box',
+						border: 'solid 2px transparent',
+					},
+				}}
 			>
+				//TODO: add more features to create task textarea
 				<SortableContext items={tasksId} strategy={verticalListSortingStrategy}>
 					{list.tasks.map((task: KanbanTaskModel) => (
 						<KanbanCard
@@ -188,7 +209,12 @@ export default function KanbanList({
 							deleteTask={deleteTask}
 						/>
 					))}
+					{isCreatingNewTask && (
+						<Textarea autoFocus onBlur={handleCreateTask} />
+					)}
 				</SortableContext>
+			</Stack>
+			<Box m={2}>
 				<Button
 					size="md"
 					width="100%"
@@ -196,11 +222,11 @@ export default function KanbanList({
 					justifyContent={'start'}
 					leftIcon={<AddIcon />}
 					variant="ghost"
-					onClick={handleCreateTask}
+					onClick={() => setIsCreatingNewTask(true)}
 				>
 					Add new task
 				</Button>
-			</Stack>
+			</Box>
 		</Box>
 	);
 }
