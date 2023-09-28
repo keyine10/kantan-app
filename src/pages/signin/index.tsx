@@ -25,10 +25,12 @@ import { authOptions } from '../api/auth/[...nextauth]';
 import { useSession, signIn } from 'next-auth/react';
 import { useState } from 'react';
 import Head from 'next/head';
+import { Router, useRouter } from 'next/router';
 
 export default function SignIn() {
 	//TODO: add error display
 	const [error, setError] = useState('');
+	const router = useRouter();
 	const formik = useFormik({
 		initialValues: {
 			email: '',
@@ -37,19 +39,22 @@ export default function SignIn() {
 		onSubmit: async (values) => {
 			console.log(values);
 			//ending submission
-			const res = await signIn('credentials', {
+			await signIn('credentials', {
 				email: values.email,
 				password: values.password,
-				redirect: true,
+				redirect: false,
 				callbackUrl: '/',
+			}).then(({ ok, status }: any) => {
+				if (ok) router.push('/');
+				else {
+					if (status === 500)
+						setError('Internal server error, please try again later.');
+					if (status === 400 || status === 401)
+						setError('Email or Password is invalid!');
+					else setError('');
+					if (error) formik.setSubmitting(false);
+				}
 			});
-			if (res?.status === 401) {
-				setError('Email or Password is invalid!');
-			} else if (res?.status === 500) {
-				setError('Internal server error, please try again later.');
-			} else setError('');
-			if (error) formik.setSubmitting(false);
-			// setError('');
 		},
 	});
 
