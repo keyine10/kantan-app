@@ -23,11 +23,15 @@ import {
 	FormErrorMessage,
 	Input,
 	Skeleton,
+	Link,
+	Spinner,
 } from '@chakra-ui/react';
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import { KanbanBoardModel } from '../../types/kanban-board';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import NextLink from 'next/link';
+import { useState } from 'react';
 
 export default function KanbanBoardListing({
 	boards = [],
@@ -45,9 +49,10 @@ export default function KanbanBoardListing({
 		title: string;
 		description: string;
 	}) => void;
-	deleteBoard: () => void;
+	deleteBoard: (id: string) => void;
 }) {
 	const { onOpen, onClose, isOpen } = useDisclosure();
+	const [isDeletingBoardId, setisDeletingBoardId] = useState('');
 	const formik = useFormik({
 		initialValues: {
 			title: '',
@@ -84,32 +89,53 @@ export default function KanbanBoardListing({
 				{boards.map((board: any) => (
 					<WrapItem key={board.id}>
 						<Box m={2}>
-							<Flex
-								bgColor="gray.200"
-								height="100px"
-								width="272px"
-								p={4}
-								borderRadius={8}
-								_hover={{
-									bgColor: 'gray.300',
-								}}
-								cursor={'pointer'}
-								userSelect={'none'}
-								transition={'all 0.2s ease'}
-								justifyContent={'space-between'}
+							<Link
+								as={NextLink}
+								href={
+									isDeletingBoardId === board.id ? '/' : `/boards/${board.id}`
+								}
 							>
-								<Text>{board.title}</Text>
-								<IconButton
-									float={'right'}
-									aria-label="options"
-									size="md"
-									opacity={0.7}
-									_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
-									variant="ghost"
-									colorScheme="gray"
-									icon={<DeleteIcon />}
-								/>
-							</Flex>
+								<Flex
+									bgColor="gray.200"
+									height="100px"
+									width="272px"
+									p={4}
+									borderRadius={8}
+									_hover={{
+										bgColor: 'gray.300',
+									}}
+									cursor={'pointer'}
+									userSelect={'none'}
+									transition={'all 0.2s ease'}
+									justifyContent={'space-between'}
+								>
+									<Text textDecoration={'none'}>{board.title}</Text>
+									<IconButton
+										float={'right'}
+										aria-label="options"
+										size="md"
+										opacity={0.7}
+										_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
+										variant="ghost"
+										colorScheme="gray"
+										icon={<DeleteIcon />}
+										zIndex={10}
+										isLoading={isDeletingBoardId === board.id}
+										onClick={async (e) => {
+											e.preventDefault();
+											e.stopPropagation();
+
+											try {
+												setisDeletingBoardId(board.id);
+												await deleteBoard(board.id);
+												setisDeletingBoardId('');
+											} catch (error) {
+												setisDeletingBoardId('');
+											}
+										}}
+									/>
+								</Flex>
+							</Link>
 						</Box>
 					</WrapItem>
 				))}

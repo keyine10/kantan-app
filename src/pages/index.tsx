@@ -1,20 +1,12 @@
 import Head from 'next/head';
 import LayoutWithNavBar from '../components/layout/LayoutWithNavBar';
-import { ReactElement, useState } from 'react';
+import { ReactElement } from 'react';
 import {
-	Box,
-	Button,
 	Container,
 	Divider,
 	Heading,
-	Popover,
-	PopoverTrigger,
 	Spacer,
-	Stack,
-	Wrap,
-	WrapItem,
-	Text,
-	useDisclosure,
+	useToast,
 } from '@chakra-ui/react';
 import { getServerSession } from 'next-auth';
 import { GetServerSidePropsContext } from 'next';
@@ -26,16 +18,13 @@ import useSWR from 'swr';
 import { axiosHelper } from '../services/fetcher';
 import KanbanBoardListing from '../components/kanban/KanbanBoardListing';
 import { boardService } from '../services/board.service';
-
-const mockboards = [
-	{ name: 'Board 1', id: '1' },
-	{ name: 'Board 2', id: '2' },
-	{ name: 'Board 3', id: '3' },
-];
+import { KanbanBoardModel } from '../types/kanban-board';
 
 export default function Home({ props }: any) {
 	// const [boards, setBoards] = useState(mockboards);
 	const { data: session, status } = useSession({ required: true });
+	const toast = useToast();
+
 	console.log(session);
 	const { user, isLoading, isError } = useUser(
 		session?.user?.id,
@@ -68,7 +57,27 @@ export default function Home({ props }: any) {
 		console.log('created board:', newBoard);
 		mutate([...boards, newBoard]);
 	};
-	const deleteBoard = () => {};
+	const deleteBoard = async (id: string) => {
+		try {
+			await boardService.deleteBoard(id, session?.user?.accessToken);
+			toast({
+				status: 'success',
+				title: 'Deleted board!',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+			mutate(boards.filter((board: KanbanBoardModel) => board.id !== id));
+		} catch (e) {
+			toast({
+				status: 'error',
+				title: 'Could not delete board, please try again',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		}
+	};
 
 	console.log(boards);
 	return (
