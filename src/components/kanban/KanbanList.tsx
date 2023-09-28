@@ -198,7 +198,7 @@ export default function KanbanList({
 					},
 				}}
 			>
-				//TODO: add more features to create task textarea
+				{/* {TODO: add more features to create task textarea} */}
 				<SortableContext items={tasksId} strategy={verticalListSortingStrategy}>
 					{list.tasks.map((task: KanbanTaskModel) => (
 						<KanbanCard
