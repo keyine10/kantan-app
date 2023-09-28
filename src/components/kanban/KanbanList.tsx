@@ -176,8 +176,8 @@ export default function KanbanList({
 			</Flex>
 			<Stack
 				direction={'column'}
-				spacing={2.5}
-				p={2}
+				spacing={1}
+				// p={2}
 				maxH={'75.5vh'}
 				position={'relative'}
 				opacity={isDragging ? 0 : 1}

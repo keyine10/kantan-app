@@ -2,6 +2,7 @@ import axios from 'axios';
 
 export const userService = {
 	signUp,
+	getUser,
 };
 
 function signUp(name: string, email: string, password: string) {
@@ -13,4 +14,12 @@ function signUp(name: string, email: string, password: string) {
 			password,
 		},
 	);
+}
+
+async function getUser(url: string, token: string) {
+	return axios
+		.get(process.env.NEXT_PUBLIC_API_URL + url, {
+			headers: { Authorization: 'Bearer ' + token },
+		})
+		.then((res) => res.data);
 }

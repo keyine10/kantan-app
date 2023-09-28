@@ -419,8 +419,10 @@ export default function KanbanBoard() {
 					alignItems={'start'}
 					overflowX={'auto'}
 					overflowY={'hidden'}
-					pt={4}
-					pl={4}
+					// pt={4}
+					// pl={4}
+					// pr={{ base: 0, xl: 4 }}
+					p={4}
 					css={{
 						'scrollbar-color': 'auto',
 

@@ -51,6 +51,7 @@ export default function KanbanCard({
 		disabled: isEditingTaskName || isDraggingList,
 	});
 
+	//TODO: make transition instant
 	const style = {
 		transition,
 		transform: CSS.Translate.toString(transform),
@@ -84,6 +85,8 @@ export default function KanbanCard({
 				rounded={'lg'}
 				minW={240}
 				maxW={304}
+				mx={2}
+				my={1}
 				// maxH={500}
 				zIndex={isDragging ? 100 : 10}
 				bgColor={'white'}

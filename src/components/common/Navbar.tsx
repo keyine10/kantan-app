@@ -21,6 +21,7 @@ import {
 import { HamburgerIcon, CloseIcon, AddIcon } from '@chakra-ui/icons';
 
 import { RxAvatar } from 'react-icons/rx';
+import { useSession, signOut } from 'next-auth/react';
 
 interface Props {
 	children: React.ReactNode;
@@ -49,7 +50,11 @@ const NavLink = (props: Props) => {
 
 export default function WithAction() {
 	const { isOpen, onOpen, onClose } = useDisclosure();
-
+	const { data: session, status } = useSession();
+	const user = session?.user;
+	const handleSignOut = () => {
+		signOut({ redirect: true, callbackUrl: '/signin' });
+	};
 	return (
 		<>
 			<Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
@@ -95,11 +100,14 @@ export default function WithAction() {
 								// minW={0}
 							></MenuButton>
 							<Portal>
-								<MenuList zIndex={1000}>
-									<MenuItem>Link 1</MenuItem>
-									<MenuItem>Link 2</MenuItem>
+								<MenuList zIndex={3000}>
+									<Text align={'center'}>Hello, {user?.name}</Text>
 									<MenuDivider />
-									<MenuItem>Link 3</MenuItem>
+
+									<MenuItem>Edit Profile</MenuItem>
+									{/* <MenuItem>Link 2</MenuItem> */}
+									<MenuDivider />
+									<MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
 								</MenuList>
 							</Portal>
 						</Menu>

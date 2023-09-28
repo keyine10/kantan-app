@@ -20,7 +20,7 @@ export default function App({
 	const getLayout = Component.getLayout ?? ((page) => page);
 
 	return (
-		<SessionProvider>
+		<SessionProvider session={session}>
 			<ChakraProvider>{getLayout(<Component {...pageProps} />)}</ChakraProvider>
 		</SessionProvider>
 	);
