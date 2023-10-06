@@ -55,7 +55,9 @@ export default function Home({ props }: any) {
 			session?.user?.accessToken,
 		);
 		console.log('created board:', newBoard);
-		mutate([...boards, newBoard]);
+		setTimeout(() => {
+			mutate([...boards, newBoard]);
+		}, 100);
 	};
 	const deleteBoard = async (id: string) => {
 		try {

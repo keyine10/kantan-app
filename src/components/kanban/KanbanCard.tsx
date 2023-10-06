@@ -169,25 +169,6 @@ export default function KanbanCard({
 							</MenuList>
 						</Portal>
 					</Menu>
-					{/* <IconButton
-						display={'none'}
-						ref={buttonRef}
-						position={'absolute'}
-						aria-label="options"
-						top={10}
-						right={1}
-						zIndex={100}
-						size="md"
-						opacity={0.3}
-						_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
-						variant="ghost"
-						colorScheme="gray"
-						_groupHover={{
-							opacity: 0.25,
-						}}
-						// onClick={handleDeleteTask}
-						icon={<DeleteIcon />}
-					/> */}
 				</CardBody>
 			</Card>
 		</Box>

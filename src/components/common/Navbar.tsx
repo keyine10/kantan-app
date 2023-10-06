@@ -25,6 +25,7 @@ import { useSession, signOut } from 'next-auth/react';
 
 interface Props {
 	children: React.ReactNode;
+	link: string;
 }
 
 const Links = ['Boards'];
@@ -41,14 +42,14 @@ const NavLink = (props: Props) => {
 				textDecoration: 'none',
 				bg: useColorModeValue('gray.200', 'gray.700'),
 			}}
-			href={'#'}
+			href={props.link}
 		>
 			{children}
 		</Box>
 	);
 };
 
-export default function WithAction() {
+export default function Navbar() {
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const { data: session, status } = useSession();
 	const user = session?.user;
@@ -73,9 +74,9 @@ export default function WithAction() {
 							spacing={4}
 							display={{ base: 'none', md: 'flex' }}
 						>
-							{Links.map((link) => (
-								<NavLink key={link}>{link}</NavLink>
-							))}
+							<NavLink key={'Boards'} link={'/'}>
+								Boards
+							</NavLink>
 						</HStack>
 					</HStack>
 					<Flex alignItems={'center'}>

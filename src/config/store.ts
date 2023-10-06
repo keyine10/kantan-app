@@ -1,6 +1,6 @@
 import { syncedStore, getYjsDoc } from '@syncedstore/core';
 import { KanbanBoardModel } from '../types/kanban-board';
-const WebrtcProvider = require('y-webrtc').WebrtcProvider;
+const WebsocketProvider = require('y-websocket').WebsocketProvider;
 
 // Create your SyncedStore store
 export const store = syncedStore({
@@ -10,7 +10,9 @@ export const store = syncedStore({
 
 // Create a document that syncs automatically using Y-WebRTC
 const doc = getYjsDoc(store);
-export const webrtcProvider = new WebrtcProvider('syncedstore-kantan', doc);
 
-export const disconnect = () => webrtcProvider.disconnect();
-export const connect = () => webrtcProvider.connect();
+const wsProvider = new WebsocketProvider(
+	'ws://localhost:1234',
+	'my-roomname',
+	doc,
+);

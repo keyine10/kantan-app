@@ -23,6 +23,7 @@ import * as Yup from 'yup';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 const validationSchema = Yup.object().shape({
 	email: Yup.string().email('Invalid email.').required('Email is required.'),
@@ -37,6 +38,7 @@ const validationSchema = Yup.object().shape({
 
 export default function SignUp() {
 	const [error, setError] = useState('');
+	const router = useRouter();
 	const [success, setSuccess] = useState(false);
 	const formik = useFormik({
 		initialValues: {
@@ -58,11 +60,21 @@ export default function SignUp() {
 				console.log('response:', response);
 				setSuccess(true);
 				setError('');
-				const res = await signIn('credentials', {
+				await signIn('credentials', {
 					email: values.email,
 					password: values.password,
 					redirect: false,
-					callbackUrl: '',
+					callbackUrl: '/',
+				}).then(({ ok, status }: any) => {
+					if (ok) router.push('/');
+					else {
+						if (status === 500)
+							setError('Internal server error, please try again later.');
+						if (status === 400 || status === 401)
+							setError('Email or Password is invalid!');
+						else setError('');
+						if (error) formik.setSubmitting(false);
+					}
 				});
 				console.log(res);
 

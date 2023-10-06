@@ -5,7 +5,7 @@ export interface KanbanTaskModel {
 
 	name: string;
 
-	description: string;
+	description: string | null;
 
 	position: number;
 

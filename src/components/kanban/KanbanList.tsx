@@ -78,19 +78,21 @@ export default function KanbanList({
 	// );
 	let tasksId = list.tasks.map((task: KanbanTaskModel) => task.id);
 
-	let sortedTasks = useMemo(
-		() =>
-			list.tasks.sort(
-				(a: KanbanTaskModel, b: KanbanTaskModel) => a.position - b.position,
-			),
-		[list.tasks],
-	);
+	//sorting tasks will cause a re-render when moving lists around, only employ sorted tasks when the position of the tasks are correct, otherwise it will seem incorrect
+
+	// let sortedTasks = useMemo(
+	// 	() =>
+	// 		list.tasks.sort(
+	// 			(a: KanbanTaskModel, b: KanbanTaskModel) => a.position - b.position,
+	// 		),
+	// 	[list.tasks],
+	// );
 
 	const handleCreateTask = (event: any) => {
 		//fix duplicate create task by creating a new task while editing task name
 		event.stopPropagation();
 		setIsCreatingNewTask(false);
-		createTask(list.id, sortedTasks.length * 10);
+		createTask(list.id, list.tasks.length * 10);
 	};
 
 	const handleRenameList = (event: any) => {
@@ -209,9 +211,27 @@ export default function KanbanList({
 							deleteTask={deleteTask}
 						/>
 					))}
-					{isCreatingNewTask && (
-						<Textarea autoFocus onBlur={handleCreateTask} />
-					)}
+					{/* {isCreatingNewTask && (
+						<AutoResizeTextarea
+							border={'none'}
+							resize={'none'}
+							// focusBorderColor="none"
+							onFocus={(event: any) => {
+								event.target.selectionEnd = event.target.value.length;
+							}}
+							onKeyDown={(event: any) => {
+								if (event.key === 'Enter') {
+									handleCreateTask(event);
+								}
+								if (event.key === 'Escape') {
+								}
+							}}
+							autoFocus
+							bgColor="white"
+							minW={240}
+							minH={100}
+						/>
+					)} */}
 				</SortableContext>
 			</Stack>
 			<Box m={2}>
@@ -222,7 +242,10 @@ export default function KanbanList({
 					justifyContent={'start'}
 					leftIcon={<AddIcon />}
 					variant="ghost"
-					onClick={() => setIsCreatingNewTask(true)}
+					onClick={(e) => {
+						setIsCreatingNewTask(true);
+						handleCreateTask(e);
+					}}
 				>
 					Add new task
 				</Button>

@@ -1,4 +1,4 @@
-import { Box, Button, Container, Flex, HStack, Stack } from '@chakra-ui/react';
+import { Button, Container, Flex, HStack, useToast } from '@chakra-ui/react';
 import KanbanList from './KanbanList';
 import { KanbanListModel } from '../../types/kanban-list';
 import {
@@ -6,7 +6,6 @@ import {
 	DragOverlay,
 	PointerSensor,
 	closestCenter,
-	closestCorners,
 	useSensor,
 	useSensors,
 } from '@dnd-kit/core';
@@ -14,8 +13,6 @@ import {
 	SortableContext,
 	arrayMove,
 	horizontalListSortingStrategy,
-	rectSwappingStrategy,
-	verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
 import { v4 as uuid } from 'uuid';
@@ -23,93 +20,29 @@ import { v4 as uuid } from 'uuid';
 import { restrictToWindowEdges } from '@dnd-kit/modifiers';
 
 import { KanbanTaskModel } from '../../types/kanban-task';
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { AddIcon } from '@chakra-ui/icons';
 import { createPortal } from 'react-dom';
-import { store } from '../../config/store';
-import { useSyncedStore } from '@syncedstore/react';
 import KanbanCard from './KanbanCard';
+import { KanbanBoardModel } from '../../types/kanban-board';
+import { listService } from '../../services/list.service';
 
-const mockBoard = {
-	lists: [
-		{
-			id: 'A',
-			name: 'updated name for list',
-			position: 1024,
-			tasks: [
-				{
-					id: '1',
-					listId: 'A',
-					name: 'very long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long long ',
-					description: 'new task description 1',
-					position: 1,
-				},
-				{
-					id: '2',
-					listId: 'A',
-					name: 'new task 1',
-					description: 'new task description 2',
-					position: 2,
-				},
-			],
-		},
-		{
-			id: 'B',
-			name: 'new list 2334',
-			position: 16384,
-			tasks: [
-				{
-					id: '7',
-					listId: 'B',
-					name: 'new task',
-					description: 'new task description 1',
-					position: 1,
-				},
-				{
-					id: '8',
-					listId: 'B',
-					name: 'new task 1',
-					description: 'new task description 2',
-					position: 2,
-				},
-			],
-		},
-		{
-			id: 'C',
-			name: 'new list 2334',
-			position: 8192,
-			tasks: [
-				{
-					id: '4',
-					listId: 'C',
-					name: 'new task',
-					description: 'new task description 1',
-					position: 1,
-				},
-				{
-					id: '5',
-					listId: 'C',
-					name: 'new task 1',
-					description: 'new task description 2',
-					position: 2,
-				},
-				{
-					id: '6',
-					listId: 'C',
-					name: 'new task 2',
-					description: 'new task description 3',
-					position: 3,
-				},
-			],
-		},
-	],
-};
-
-export default function KanbanBoard() {
-	// const board = useSyncedStore(store);
-	let [lists, setLists] = useState<KanbanListModel[]>(mockBoard.lists);
+export default function KanbanBoard({
+	board,
+	mutate,
+	user,
+}: {
+	board: KanbanBoardModel;
+	mutate: any;
+	user: any;
+}) {
+	let [lists_, setLists] = useState<KanbanListModel[]>(board.lists);
+	const lists = board.lists;
+	const toast = useToast();
 	const dndId = useId();
-
+	// useEffect(() => {
+	// 	setLists(board.lists);
+	// }, [board]);
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -119,6 +52,7 @@ export default function KanbanBoard() {
 	);
 	const [activeList, setActiveList] = useState<KanbanListModel | null>(null);
 	const [activeTask, setActiveTask] = useState<KanbanTaskModel | null>(null);
+	const [isCreatingList, setIsCreatingList] = useState(false);
 
 	const listsId = useMemo(() => lists.map((list) => list.id), [lists]);
 	const isDraggingList = activeList?.id
@@ -131,20 +65,136 @@ export default function KanbanBoard() {
 		return lists.findIndex((list) => list.id === listId);
 	}
 
-	function handleCreateList(event: any) {
-		let newLists: KanbanListModel = {
-			id: uuid(),
-			name: 'new list #' + lists.length,
-			position: lists.length * 10,
-			tasks: [],
-		};
-		setLists([...lists, newLists]);
+	async function handleCreateList(event: any) {
+		try {
+			let newList = {
+				name: 'new list #' + lists.length,
+				position: lists.length * 100 + 100,
+				boardId: board.id,
+			};
+			let optimisticList = {
+				...newList,
+				id: uuid(),
+				tasks: [],
+			};
+			console.log('newlist:', newList);
+			await mutate(
+				async () => {
+					const createdList = await listService.createList(
+						newList,
+						user.accessToken,
+					);
+					return {
+						...board,
+						lists: [...lists, createdList],
+					};
+				},
+				{
+					optimisticData: { ...board, lists: [...lists, optimisticList] },
+					rollbackOnError: true,
+					populateCache: true,
+					revalidate: false,
+				},
+			);
+			toast({
+				status: 'success',
+				title: 'Created list ' + newList.name,
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+			setLists([...lists, optimisticList]);
+		} catch (e) {
+			console.log(e);
+			toast({
+				status: 'error',
+				title: 'Could not create list, please try again',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		}
+
+		// setLists([...lists, optimisticList]);
+
+		setIsCreatingList(false);
 	}
-	function updateList(id: string, updatedList: KanbanListModel) {
-		setLists(lists.map((list) => (list.id === id ? updatedList : list)));
+	async function updateList(id: string, updatedList: Partial<KanbanListModel>) {
+		try {
+			await mutate(
+				async () => {
+					const updatedListInDb = await listService.updateList(
+						updatedList,
+						user.accessToken,
+					);
+					return {
+						...board,
+						lists: lists.map((list) =>
+							list.id === id ? { ...list, ...updatedList } : list,
+						),
+					};
+				},
+				{
+					optimisticData: {
+						...board,
+						lists: lists.map((list) => (list.id === id ? updatedList : list)),
+					},
+					rollbackOnError: true,
+					populateCache: true,
+					revalidate: false,
+				},
+			);
+		} catch (e) {
+			console.log(e);
+			toast({
+				status: 'error',
+				title: 'Could not update list, please try again',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		}
+		// setLists(lists.map((list) => (list.id === id ? updatedList : list)));
 	}
-	function deleteList(id: string) {
-		setLists(lists.filter((list) => list.id !== id));
+	async function deleteList(id: string) {
+		try {
+			await mutate(
+				async () => {
+					await listService.deleteList(id, user.accessToken).then((res) => {
+						// console.log('DELETED', res);
+					});
+					return {
+						...board,
+						lists: lists.filter((list) => list.id !== id),
+					};
+				},
+				{
+					optimisticData: {
+						...board,
+						lists: lists.filter((list) => list.id !== id),
+					},
+					rollbackOnError: true,
+					populateCache: true,
+					revalidate: false,
+				},
+			);
+			toast({
+				status: 'success',
+				title: 'Deleted list',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+			setLists(lists.filter((list) => list.id !== id));
+		} catch (e) {
+			toast({
+				status: 'error',
+				title: 'Could not delete list, please try again',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		}
 	}
 	function createTask(listId: string, position: number) {
 		console.log('Creating new task');
@@ -252,6 +302,36 @@ export default function KanbanBoard() {
 
 			//only call setLists here if the lists are not the same
 
+			// if (activeListIndex === overListIndex) {
+			// 	setLists((lists) => {
+			// 		console.log(
+			// 			'moving tasks from the same list from',
+			// 			activeTaskIndex,
+			// 			'to',
+			// 			overTaskIndex,
+			// 		);
+			// 		let newLists = [...lists];
+			// 		console.log('before moving', newLists[activeListIndex].tasks);
+			// 		let currentTasks = arrayMove(
+			// 			newLists[activeListIndex].tasks,
+			// 			activeTaskIndex,
+			// 			overTaskIndex,
+			// 		);
+			// 		console.log('after moving', currentTasks);
+			// 		newLists[activeListIndex].tasks.splice(
+			// 			0,
+			// 			currentTasks.length,
+			// 			...currentTasks,
+			// 		);
+
+			// 		// console.log(newLists[activeListIndex].tasks);
+			// 		return lists;
+			// 	});
+			// }
+
+			if (activeListIndex === overListIndex) {
+				return;
+			}
 			if (activeListIndex !== overListIndex) {
 				// Sorting items in different lists
 				setLists((lists) => {
@@ -283,6 +363,7 @@ export default function KanbanBoard() {
 			let activeTaskIndex = lists[activeListIndex].tasks.findIndex(
 				(task) => task.id === active.data.current.task.id,
 			);
+
 			// Remove task from active list and add to over list
 			let newLists = [...lists];
 			const [removedTask] = newLists[activeListIndex].tasks.splice(
@@ -294,7 +375,7 @@ export default function KanbanBoard() {
 			setLists(newLists);
 		}
 	};
-	const handleDragEnd = (event: any) => {
+	const handleDragEnd = async (event: any) => {
 		// task and list after drag end are updated
 		console.log(activeTask);
 		console.log(activeList);
@@ -311,12 +392,47 @@ export default function KanbanBoard() {
 		// handle list sorting
 		if (activeType === 'list' && overType === 'list' && active.id !== over.id) {
 			if (active.id !== over.id) {
+				//TODO:update list positions
 				const activeListIndex = lists.findIndex(
 					(list) => list.id === active.id,
 				);
 				const overListIndex = lists.findIndex((list) => list.id === over.id);
-				//TODO:update list positions
-				setLists(arrayMove(lists, activeListIndex, overListIndex));
+				console.log('moved list', activeListIndex, 'to', overListIndex);
+				try {
+					mutate(
+						async () => {
+							//update list positions
+							let newPos;
+							console.log(active.id, lists[activeListIndex]);
+							await updateList(active.id, {
+								...activeList,
+								position: lists[overListIndex].position - 1,
+							});
+							console.log(active.id, lists[activeListIndex]);
+							return {
+								...board,
+								lists: arrayMove(lists, activeListIndex, overListIndex),
+							};
+						},
+						{
+							optimisticData: {
+								...board,
+								lists: arrayMove(lists, overListIndex, activeListIndex),
+							},
+							rollbackOnError: true,
+							populateCache: true,
+							revalidate: false,
+						},
+					);
+				} catch (e) {}
+
+				setLists((lists) => {
+					const activeListIndex = lists.findIndex(
+						(list) => list.id === active.id,
+					);
+					const overListIndex = lists.findIndex((list) => list.id === over.id);
+					return arrayMove(lists, activeListIndex, overListIndex);
+				});
 			}
 		}
 
@@ -342,9 +458,14 @@ export default function KanbanBoard() {
 
 			if (activeListIndex === overListIndex) {
 				setLists((lists) => {
-					// console.log('moving tasks from the same list');
+					console.log(
+						'moving tasks from the same list from',
+						activeTaskIndex,
+						'to',
+						overTaskIndex,
+					);
 					let newLists = [...lists];
-					// console.log('before moving', newLists[activeListIndex].tasks);
+					console.log('before moving', newLists[activeListIndex].tasks);
 					let currentTasks = arrayMove(
 						newLists[activeListIndex].tasks,
 						activeTaskIndex,
@@ -356,8 +477,9 @@ export default function KanbanBoard() {
 						currentTasks.length,
 						...currentTasks,
 					);
-					// console.log(newLists[activeListIndex].tasks);
-					return lists;
+
+					console.log('after moving:', newLists[activeListIndex].tasks);
+					return newLists;
 				});
 			} else {
 				// Moving items between lists
@@ -405,7 +527,7 @@ export default function KanbanBoard() {
 	};
 	return (
 		<DndContext
-			collisionDetection={closestCorners}
+			collisionDetection={closestCenter}
 			onDragStart={handleDragStart}
 			onDragEnd={handleDragEnd}
 			onDragOver={handleDragOver}
@@ -424,7 +546,7 @@ export default function KanbanBoard() {
 					// pr={{ base: 0, xl: 4 }}
 					p={4}
 					css={{
-						'scrollbar-color': 'auto',
+						scrollbarColor: 'auto',
 
 						'&::-webkit-scrollbar': {
 							width: '16px',
@@ -464,17 +586,19 @@ export default function KanbanBoard() {
 						})}
 					</SortableContext>
 					<Flex maxH={{ base: '98vh', xl: '99vh' }} justifyContent={'end'}>
-						<Button
-							size="md"
-							height="100px"
-							width="272px"
-							leftIcon={<AddIcon />}
-							variant="solid"
-							border="2px dashed black"
-							onClick={handleCreateList}
-						>
-							Add Column
-						</Button>
+						{!isCreatingList ? (
+							<Button
+								size="md"
+								height="100px"
+								width="272px"
+								leftIcon={<AddIcon />}
+								variant="solid"
+								border="2px dashed black"
+								onClick={handleCreateList}
+							>
+								Add Column
+							</Button>
+						) : null}
 					</Flex>
 				</HStack>
 			</Container>

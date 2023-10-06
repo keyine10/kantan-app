@@ -31,7 +31,7 @@ import { KanbanBoardModel } from '../../types/kanban-board';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import NextLink from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function KanbanBoardListing({
 	boards = [],
@@ -53,6 +53,8 @@ export default function KanbanBoardListing({
 }) {
 	const { onOpen, onClose, isOpen } = useDisclosure();
 	const [isDeletingBoardId, setisDeletingBoardId] = useState('');
+	const inputFocusRef = useRef(null);
+
 	const formik = useFormik({
 		initialValues: {
 			title: '',
@@ -142,7 +144,7 @@ export default function KanbanBoardListing({
 
 				<Popover
 					isOpen={isOpen}
-					// initialFocusRef={}
+					initialFocusRef={inputFocusRef}
 					onOpen={onOpen}
 					onClose={onClose}
 					placement="right"
@@ -181,6 +183,8 @@ export default function KanbanBoardListing({
 											type="title"
 											name="title"
 											isRequired
+											autoFocus
+											ref={inputFocusRef}
 											value={formik.values.title}
 											onChange={formik.handleChange}
 											onBlur={formik.handleBlur}

@@ -28,14 +28,6 @@ export const PasswordField = forwardRef<HTMLInputElement, InputProps>(
 			<FormControl>
 				<FormLabel htmlFor="password">Password</FormLabel>
 				<InputGroup>
-					<InputRightElement>
-						<IconButton
-							variant="text"
-							aria-label={isOpen ? 'Mask password' : 'Reveal password'}
-							icon={isOpen ? <HiEyeOff /> : <HiEye />}
-							onClick={onClickReveal}
-						/>
-					</InputRightElement>
 					<Input
 						id="password"
 						ref={mergeRef}
@@ -46,6 +38,14 @@ export const PasswordField = forwardRef<HTMLInputElement, InputProps>(
 						onChange={props.onChange}
 						value={props.value}
 					/>
+					<InputRightElement>
+						<IconButton
+							variant="text"
+							aria-label={isOpen ? 'Mask password' : 'Reveal password'}
+							icon={isOpen ? <HiEyeOff /> : <HiEye />}
+							onClick={onClickReveal}
+						/>
+					</InputRightElement>
 				</InputGroup>
 			</FormControl>
 		);
