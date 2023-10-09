@@ -9,7 +9,8 @@ export const KANTAN_BACKEND_SIGNIN_ENDPOINT =
 export const authOptions: NextAuthOptions = {
 	secret: process.env.JWT_SECRET,
 	session: {
-		// strategy: 'jwt',
+		strategy: 'jwt',
+		maxAge: 86400,
 	},
 	providers: [
 		CredentialsProvider({

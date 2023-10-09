@@ -26,6 +26,7 @@ import { createPortal } from 'react-dom';
 import KanbanCard from './KanbanCard';
 import { KanbanBoardModel } from '../../types/kanban-board';
 import { listService } from '../../services/list.service';
+import { taskService } from '../../services/task.service';
 
 export default function KanbanBoard({
 	board,
@@ -196,44 +197,171 @@ export default function KanbanBoard({
 			});
 		}
 	}
-	function createTask(listId: string, position: number) {
-		console.log('Creating new task');
-		let newTask: KanbanTaskModel = {
-			id: uuid(),
-			listId: listId,
-			name:
-				'new task #' + lists.find((list) => list.id === listId)?.tasks.length,
-			description: '',
-			position: position,
-		};
-		setLists((lists) => {
-			lists.find((list) => list.id === listId)?.tasks.push(newTask);
-			return [...lists];
-		});
-		console.log(newTask);
+	async function createTask(listId: string, position: number) {
+		try {
+			let newTask: Partial<KanbanTaskModel> = {
+				listId: listId,
+				name:
+					'new task #' + lists.find((list) => list.id === listId)?.tasks.length,
+				position: position,
+			};
+			let optimisticTask = {
+				id: uuid(),
+				description: '',
+				...newTask,
+			};
+			await mutate(
+				async () => {
+					const createdTask = await taskService.createTask(
+						newTask,
+						user.accessToken,
+					);
+					return {
+						...board,
+						lists: lists.map((list) =>
+							list.id === listId
+								? { ...list, tasks: [...list.tasks, createdTask] }
+								: list,
+						),
+					};
+				},
+				{
+					optimisticData: {
+						...board,
+						lists: lists.map((list) =>
+							list.id === listId
+								? { ...list, tasks: [...list.tasks, optimisticTask] }
+								: list,
+						),
+					},
+					rollbackOnError: true,
+					populateCache: true,
+					revalidate: false,
+				},
+			);
+			toast({
+				status: 'success',
+				title: 'Created task ' + newTask.name,
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		} catch (e) {
+			console.log(e);
+			toast({
+				status: 'error',
+				title: 'Could not create task, please try again',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		}
 	}
 
-	function updateTask(id: string, updatedTask: KanbanTaskModel) {
-		setLists(
-			lists.map((list) => {
-				if (list.id === updatedTask.listId) {
-					list.tasks = list.tasks.map((task) =>
-						task.id === id ? updatedTask : task,
+	async function updateTask(id: string, updatedTask: KanbanTaskModel) {
+		try {
+			await mutate(
+				async () => {
+					const updatedTaskInDb = await taskService.updateTask(
+						updatedTask,
+						user.accessToken,
 					);
-				}
-				return list;
-			}),
-		);
+					return {
+						...board,
+						lists: lists.map((list) =>
+							list.id === updatedTaskInDb.listId
+								? {
+										...list,
+										tasks: list.tasks.map((task) =>
+											task.id === id ? updatedTaskInDb : task,
+										),
+								  }
+								: list,
+						),
+					};
+				},
+				{
+					optimisticData: {
+						...board,
+						lists: lists.map((list) =>
+							list.id === updatedTask.listId
+								? {
+										...list,
+										tasks: list.tasks.map((task) =>
+											task.id === id ? updatedTask : task,
+										),
+								  }
+								: list,
+						),
+					},
+					rollbackOnError: true,
+					populateCache: true,
+					revalidate: false,
+				},
+			);
+		} catch (e) {
+			console.log(e);
+			toast({
+				status: 'error',
+				title: 'Could not update list, please try again',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		}
 	}
-	function deleteTask(id: string, listId: string) {
-		setLists(
-			lists.map((list) => {
-				if (list.id === listId) {
-					list.tasks = list.tasks.filter((task) => task.id !== id);
-				}
-				return list;
-			}),
-		);
+	async function deleteTask(id: string, listId: string) {
+		try {
+			await mutate(
+				async () => {
+					await taskService.deleteTask(id, user.accessToken).then((res) => {
+						// console.log('DELETED', res);
+					});
+					return {
+						...board,
+						lists: lists.map((list) =>
+							list.id === listId
+								? {
+										...list,
+										tasks: list.tasks.filter((task) => task.id !== id),
+								  }
+								: list,
+						),
+					};
+				},
+				{
+					optimisticData: {
+						...board,
+						lists: lists.map((list) =>
+							list.id === listId
+								? {
+										...list,
+										tasks: list.tasks.filter((task) => task.id !== id),
+								  }
+								: list,
+						),
+					},
+					rollbackOnError: true,
+					populateCache: true,
+					revalidate: false,
+				},
+			);
+			toast({
+				status: 'success',
+				title: 'Deleted task',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		} catch (e) {
+			toast({
+				status: 'error',
+				title: 'Could not delete task, please try again',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		}
 	}
 
 	function handleDragStart(event: any) {

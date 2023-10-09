@@ -92,7 +92,7 @@ export default function KanbanList({
 		//fix duplicate create task by creating a new task while editing task name
 		event.stopPropagation();
 		setIsCreatingNewTask(false);
-		createTask(list.id, list.tasks.length * 10);
+		createTask(list.id, list.tasks.length * 8192 + 8192);
 	};
 
 	const handleRenameList = (event: any) => {
