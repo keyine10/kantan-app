@@ -76,7 +76,6 @@ export default function SignUp() {
 						if (error) formik.setSubmitting(false);
 					}
 				});
-				console.log(res);
 
 				// setError('');
 			} catch (error: any) {

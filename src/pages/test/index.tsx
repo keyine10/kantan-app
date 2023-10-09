@@ -104,14 +104,14 @@ export default function KanbanPage() {
 			doc,
 		);
 
-		wsProvider.on('sync', (isSynced) => {
+		wsProvider.on('sync', (isSynced: any) => {
 			console.log('synced:', isSynced);
 			if (isSynced && !state.board.lists) {
 				state.board.lists = [];
 				state.board.lists.push(...mockBoard.lists);
 			}
 		});
-	}, []);
+	}, [doc, id, state.board]);
 
 	const handleAddList = () => {
 		if (!state.board.lists) state.board.lists = [];
