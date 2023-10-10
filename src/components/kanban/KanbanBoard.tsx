@@ -27,6 +27,7 @@ import KanbanCard from './KanbanCard';
 import { KanbanBoardModel } from '../../types/kanban-board';
 import { listService } from '../../services/list.service';
 import { taskService } from '../../services/task.service';
+import { POSITION_INTERVAL } from '../common/constants';
 
 export default function KanbanBoard({
 	board,
@@ -70,7 +71,7 @@ export default function KanbanBoard({
 		try {
 			let newList = {
 				name: 'new list #' + lists.length,
-				position: lists.length * 100 + 100,
+				position: lists.length * POSITION_INTERVAL + POSITION_INTERVAL,
 				boardId: board.id,
 			};
 			let optimisticList = {
@@ -131,7 +132,7 @@ export default function KanbanBoard({
 					return {
 						...board,
 						lists: lists.map((list) =>
-							list.id === id ? { ...list, ...updatedList } : list,
+							list.id === id ? { ...list, ...updatedListInDb } : list,
 						),
 					};
 				},
@@ -145,6 +146,7 @@ export default function KanbanBoard({
 					revalidate: false,
 				},
 			);
+			return updatedList;
 		} catch (e) {
 			console.log(e);
 			toast({
@@ -527,29 +529,69 @@ export default function KanbanBoard({
 				const overListIndex = lists.findIndex((list) => list.id === over.id);
 				console.log('moved list', activeListIndex, 'to', overListIndex);
 				try {
+					let newPos = lists[activeListIndex].position;
+					console.log('Moving into', lists[overListIndex].position);
+					if (overListIndex === 0) {
+						newPos = lists[overListIndex].position / 2;
+						console.log(
+							'Moving into the start of list with new position:',
+							newPos,
+						);
+					} else if (overListIndex === lists.length - 1) {
+						newPos = lists[overListIndex].position + POSITION_INTERVAL;
+						console.log(
+							'Moving into the end of list with new position:',
+							newPos,
+						);
+					} else {
+						console.log(
+							'Moving into between 2 lists with positions:',
+							lists[overListIndex].position,
+							'and',
+							lists[overListIndex - 1].position,
+						);
+						newPos =
+							(lists[overListIndex].position +
+								lists[overListIndex - 1].position) /
+							2;
+					}
+
+					let optimisticLists = [...lists];
+					optimisticLists[activeListIndex].position = newPos;
 					mutate(
 						async () => {
 							//update list positions
-							let newPos;
-							console.log(active.id, lists[activeListIndex]);
-							await updateList(active.id, {
-								...activeList,
-								position: lists[overListIndex].position - 1,
-							});
-							console.log(active.id, lists[activeListIndex]);
+
+							// console.log(active.id, lists[activeListIndex]);
+							const updatedListInDb = await listService.updateList(
+								{
+									...activeList,
+									position: newPos,
+								},
+								user.accessToken,
+							);
+							console.log('updated list with new position', newPos);
 							return {
 								...board,
-								lists: arrayMove(lists, activeListIndex, overListIndex),
+								lists: arrayMove(
+									optimisticLists,
+									activeListIndex,
+									overListIndex,
+								),
 							};
 						},
 						{
 							optimisticData: {
 								...board,
-								lists: arrayMove(lists, overListIndex, activeListIndex),
+								lists: arrayMove(
+									optimisticLists,
+									overListIndex,
+									activeListIndex,
+								),
 							},
 							rollbackOnError: true,
 							populateCache: true,
-							revalidate: false,
+							revalidate: true,
 						},
 					);
 				} catch (e) {}
