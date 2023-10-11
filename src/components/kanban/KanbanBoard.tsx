@@ -430,7 +430,9 @@ export default function KanbanBoard({
 				);
 				removedTask.listId = lists[overListIndex].id;
 
-				newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
+				// newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
+				newLists[overListIndex].tasks.push(removedTask);
+
 				mutate(
 					{ ...board, lists: newLists },
 					{ revalidate: false, rollbackOnError: true },
@@ -621,15 +623,16 @@ export default function KanbanBoard({
 					if (!isMovingAcrossLists && activeTaskIndex === overTaskIndex) return;
 
 					if (overTaskIndex === 0) {
-						newPos = lists[overListIndex].tasks[overTaskIndex].position / 2;
+						if (lists[overListIndex].tasks.length > 1)
+							newPos = lists[overListIndex].tasks[overTaskIndex].position / 2;
 						console.log(
 							'Moving task into the start of list with new position:',
 							newPos,
 						);
 					} else if (overTaskIndex === lists[overListIndex].tasks.length - 1) {
 						newPos =
-							lists[overListIndex].tasks[overTaskIndex].position +
-							POSITION_INTERVAL;
+							lists[overListIndex].tasks[lists[overListIndex].tasks.length - 2]
+								.position + POSITION_INTERVAL;
 						console.log(
 							'Moving task into the end of list with new position:',
 							newPos,
