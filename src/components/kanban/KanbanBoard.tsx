@@ -71,16 +71,21 @@ export default function KanbanBoard({
 	}
 
 	async function handleCreateList(event: any) {
+		let position =
+			lists.length > 0
+				? lists[lists.length - 1].position + POSITION_INTERVAL
+				: POSITION_INTERVAL;
 		try {
 			let newList = {
 				name: 'new list #' + lists.length,
-				position: lists.length * POSITION_INTERVAL + POSITION_INTERVAL,
+				position: position,
 				boardId: board.id,
 			};
 			let optimisticList = {
 				...newList,
-				id: uuid(),
+				id: uuid() + 'temporary',
 				tasks: [],
+				synced: false,
 			};
 			console.log('newlist:', newList);
 			await mutate(
@@ -201,14 +206,14 @@ export default function KanbanBoard({
 		try {
 			let newTask: Partial<KanbanTaskModel> = {
 				listId: listId,
-				name:
-					'new task #' + lists.find((list) => list.id === listId)?.tasks.length,
+				name: 'new task',
 				position: position,
 			};
 			let optimisticTask = {
-				id: uuid(),
 				description: '',
 				...newTask,
+				tasks: [],
+				id: uuid() + 'temporary',
 			};
 			await mutate(
 				async () => {

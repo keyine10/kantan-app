@@ -7,6 +7,7 @@ import {
 	IconButton,
 	Flex,
 	Textarea,
+	useToast,
 } from '@chakra-ui/react';
 import { KanbanListModel } from '../../types/kanban-list';
 import KanbanCard from './KanbanCard';
@@ -72,7 +73,7 @@ export default function KanbanList({
 		transition,
 		transform: CSS.Translate.toString(transform),
 	};
-
+	const toast = useToast();
 	// let tasksId = useMemo(
 	// 	() => list.tasks.map((task: KanbanTaskModel) => task.id),
 	// 	[list.tasks.length],
@@ -92,11 +93,23 @@ export default function KanbanList({
 	const handleCreateTask = (event: any) => {
 		//fix duplicate create task by creating a new task while editing task name
 		event.stopPropagation();
+
 		setIsCreatingNewTask(false);
+		if (list.id.includes('temporary')) {
+			toast({
+				title: 'List is being created, please try again later',
+				status: 'info',
+				duration: 5000,
+				isClosable: true,
+				position: 'bottom-left',
+			});
+			return;
+		}
 		let position =
 			list.tasks.length > 0
 				? list.tasks[list.tasks.length - 1].position + POSITION_INTERVAL
 				: POSITION_INTERVAL;
+
 		createTask(list.id, position);
 	};
 
