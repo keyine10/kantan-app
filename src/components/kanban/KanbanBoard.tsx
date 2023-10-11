@@ -630,9 +630,16 @@ export default function KanbanBoard({
 							newPos,
 						);
 					} else if (overTaskIndex === lists[overListIndex].tasks.length - 1) {
-						newPos =
-							lists[overListIndex].tasks[lists[overListIndex].tasks.length - 2]
-								.position + POSITION_INTERVAL;
+						if (isMovingAcrossLists)
+							newPos =
+								lists[overListIndex].tasks[
+									lists[overListIndex].tasks.length - 2
+								].position + POSITION_INTERVAL;
+						else
+							newPos =
+								lists[overListIndex].tasks[
+									lists[overListIndex].tasks.length - 1
+								].position + POSITION_INTERVAL;
 						console.log(
 							'Moving task into the end of list with new position:',
 							newPos,
