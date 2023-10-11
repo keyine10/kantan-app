@@ -22,6 +22,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { AddIcon, HamburgerIcon, DeleteIcon } from '@chakra-ui/icons';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
+import { POSITION_INTERVAL } from '../common/constants';
 
 interface KanbanListProps {
 	list: KanbanListModel;
@@ -92,7 +93,11 @@ export default function KanbanList({
 		//fix duplicate create task by creating a new task while editing task name
 		event.stopPropagation();
 		setIsCreatingNewTask(false);
-		createTask(list.id, list.tasks.length * 8192 + 8192);
+		let position =
+			list.tasks.length > 0
+				? list.tasks[list.tasks.length - 1].position + POSITION_INTERVAL
+				: POSITION_INTERVAL;
+		createTask(list.id, position);
 	};
 
 	const handleRenameList = (event: any) => {
