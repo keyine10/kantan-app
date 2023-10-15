@@ -658,15 +658,19 @@ export default function KanbanBoard({
 							newPos,
 						);
 					} else {
+						let diff = 0;
+						if (activeTaskIndex < overTaskIndex) diff = 1;
+						else diff = -1;
+						if (isMovingAcrossLists) diff = -1;
 						console.log(
 							'Moving task into between 2 tasks with positions:',
-							lists[overListIndex].tasks[overTaskIndex].position,
+							overTaskIndex,
 							'and',
-							lists[overListIndex].tasks[overTaskIndex - 1].position,
+							overTaskIndex + diff,
 						);
 						newPos =
 							(lists[overListIndex].tasks[overTaskIndex].position +
-								lists[overListIndex].tasks[overTaskIndex - 1].position) /
+								lists[overListIndex].tasks[overTaskIndex + diff].position) /
 							2;
 					}
 
