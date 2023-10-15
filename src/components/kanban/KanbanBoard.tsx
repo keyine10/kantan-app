@@ -519,11 +519,11 @@ export default function KanbanBoard({
 							'Moving into between 2 lists with positions:',
 							lists[overListIndex].position,
 							'and',
-							lists[overListIndex - 1].position,
+							lists[overListIndex + 1].position,
 						);
 						newPos =
 							(lists[overListIndex].position +
-								lists[overListIndex - 1].position) /
+								lists[overListIndex + 1].position) /
 							2;
 					}
 
