@@ -12,12 +12,10 @@ import {
 import { KanbanListModel } from '../../types/kanban-list';
 import KanbanCard from './KanbanCard';
 import { KanbanTaskModel } from '../../types/kanban-task';
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
 	SortableContext,
-	arrayMove,
 	verticalListSortingStrategy,
-	rectSwappingStrategy,
 	useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';

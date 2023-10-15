@@ -515,15 +515,19 @@ export default function KanbanBoard({
 							newPos,
 						);
 					} else {
+						let diff = 0;
+						if (activeListIndex < overListIndex) diff = 1;
+						else diff = -1;
 						console.log(
 							'Moving into between 2 lists with positions:',
 							lists[overListIndex].position,
 							'and',
-							lists[overListIndex + 1].position,
+							lists[overListIndex + diff].position,
 						);
+
 						newPos =
 							(lists[overListIndex].position +
-								lists[overListIndex + 1].position) /
+								lists[overListIndex + diff].position) /
 							2;
 					}
 
@@ -639,6 +643,7 @@ export default function KanbanBoard({
 						);
 					} else if (overTaskIndex === lists[overListIndex].tasks.length - 1) {
 						if (isMovingAcrossLists)
+							//tasks that are moved across lists are inserted at the end of the list, therefore the real last task is always the second to last
 							newPos =
 								lists[overListIndex].tasks[
 									lists[overListIndex].tasks.length - 2
