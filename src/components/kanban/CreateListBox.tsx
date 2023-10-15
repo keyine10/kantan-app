@@ -2,7 +2,7 @@ import { Flex, Heading, Box } from '@chakra-ui/react';
 
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
 
-export default function CreateList({
+export default function CreateListBox({
 	handleCreateList,
 	setIsCreatingList,
 }: any) {

@@ -84,7 +84,7 @@ export default function KanbanCard({
 				position="relative"
 				rounded={'lg'}
 				minW={240}
-				maxW={304}
+				maxW={284}
 				mx={2}
 				my={1}
 				// maxH={500}

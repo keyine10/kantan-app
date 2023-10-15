@@ -28,7 +28,8 @@ import { KanbanBoardModel } from '../../types/kanban-board';
 import { listService } from '../../services/list.service';
 import { taskService } from '../../services/task.service';
 import { POSITION_INTERVAL } from '../common/constants';
-import CreateList from './CreateList';
+import CreateListBox from './CreateListBox';
+import { AxiosError } from 'axios';
 
 export default function KanbanBoard({
 	board,
@@ -152,11 +153,13 @@ export default function KanbanBoard({
 				},
 			);
 			return updatedList;
-		} catch (e) {
+		} catch (e: any) {
 			console.log(e);
 			toast({
 				status: 'error',
-				title: 'Could not update list, please try again',
+				title:
+					'Could not update list, please try again, error:' +
+					e.response.data.message,
 				isClosable: true,
 				position: 'bottom-left',
 				variant: 'left-accent',
@@ -202,11 +205,11 @@ export default function KanbanBoard({
 			});
 		}
 	}
-	async function createTask(listId: string, position: number) {
+	async function createTask(name: string, listId: string, position: number) {
 		try {
 			let newTask: Partial<KanbanTaskModel> = {
 				listId: listId,
-				name: 'new task',
+				name: name,
 				position: position,
 			};
 			let optimisticTask = {
@@ -785,16 +788,16 @@ export default function KanbanBoard({
 							<Button
 								size="md"
 								height="100px"
-								width="300px"
+								width="284px"
 								leftIcon={<AddIcon />}
 								variant="solid"
 								border="2px dashed black"
 								onClick={() => setIsCreatingList(true)}
 							>
-								Add Column
+								Add List
 							</Button>
 						) : (
-							<CreateList
+							<CreateListBox
 								handleCreateList={handleCreateList}
 								setIsCreatingList={setIsCreatingList}
 							/>

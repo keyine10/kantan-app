@@ -24,6 +24,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { AddIcon, HamburgerIcon, DeleteIcon } from '@chakra-ui/icons';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
 import { POSITION_INTERVAL } from '../common/constants';
+import CreateTaskBox from './CreateTaskBox';
 
 interface KanbanListProps {
 	list: KanbanListModel;
@@ -31,7 +32,7 @@ interface KanbanListProps {
 	tasks: KanbanTaskModel[];
 	isDraggingTask: boolean;
 
-	createTask: (listId: string, position: number) => void;
+	createTask: (name: string, listId: string, position: number) => void;
 	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
 	deleteTask: (id: string, listId: string) => void;
 
@@ -93,7 +94,6 @@ export default function KanbanList({
 	const handleCreateTask = (event: any) => {
 		//fix duplicate create task by creating a new task while editing task name
 		event.stopPropagation();
-
 		setIsCreatingNewTask(false);
 		if (list.id.includes('temporary')) {
 			toast({
@@ -105,12 +105,13 @@ export default function KanbanList({
 			});
 			return;
 		}
+		if (event.target.value.length <= 0) return;
 		let position =
 			list.tasks.length > 0
 				? list.tasks[list.tasks.length - 1].position + POSITION_INTERVAL
 				: POSITION_INTERVAL;
 
-		createTask(list.id, position);
+		createTask(event.target.value, list.id, position);
 	};
 
 	const handleRenameList = (event: any) => {
@@ -132,8 +133,8 @@ export default function KanbanList({
 			}
 			border={isDragging ? '2px dashed black' : 'none'}
 			bgColor={'gray.50'}
-			minWidth={'300px'}
-			maxWidth={'304px'}
+			minWidth={'284px'}
+			maxWidth={'284px'}
 			ref={setNodeRef}
 			style={style}
 			zIndex={100}
@@ -165,7 +166,8 @@ export default function KanbanList({
 								autoFocus
 								size="sm"
 								bgColor="white"
-								minW={240}
+								minW={224}
+								maxLength={50}
 							/>
 						) : (
 							<Text
@@ -176,7 +178,9 @@ export default function KanbanList({
 								onClick={() => {
 									setIsEditingListName(true);
 								}}
-								minW={240}
+								text-overflow="ellipsis"
+								minW={224}
+								maxW={224}
 							>
 								{list.name}
 							</Text>
@@ -229,44 +233,29 @@ export default function KanbanList({
 							deleteTask={deleteTask}
 						/>
 					))}
-					{/* {isCreatingNewTask && (
-						<AutoResizeTextarea
-							border={'none'}
-							resize={'none'}
-							// focusBorderColor="none"
-							onFocus={(event: any) => {
-								event.target.selectionEnd = event.target.value.length;
-							}}
-							onKeyDown={(event: any) => {
-								if (event.key === 'Enter') {
-									handleCreateTask(event);
-								}
-								if (event.key === 'Escape') {
-								}
-							}}
-							autoFocus
-							bgColor="white"
-							minW={240}
-							minH={100}
-						/>
-					)} */}
 				</SortableContext>
 			</Stack>
 			<Box m={2}>
-				<Button
-					size="md"
-					width="100%"
-					minH={'50px'}
-					justifyContent={'start'}
-					leftIcon={<AddIcon />}
-					variant="ghost"
-					onClick={(e) => {
-						setIsCreatingNewTask(true);
-						handleCreateTask(e);
-					}}
-				>
-					Add new task
-				</Button>
+				{!isCreatingNewTask ? (
+					<Button
+						size="md"
+						width="100%"
+						minH={'50px'}
+						justifyContent={'start'}
+						leftIcon={<AddIcon />}
+						variant="ghost"
+						onClick={(e) => {
+							setIsCreatingNewTask(true);
+						}}
+					>
+						Add new task
+					</Button>
+				) : (
+					<CreateTaskBox
+						handleCreateTask={handleCreateTask}
+						setIsCreatingNewTask={setIsCreatingNewTask}
+					/>
+				)}
 			</Box>
 		</Box>
 	);

@@ -32,14 +32,16 @@ function deleteList(id: string, token: string) {
 }
 
 function updateList(data: any, token: string) {
-	return axios.patch(
-		process.env.NEXT_PUBLIC_API_URL + API_ENDPOINT_LISTS + `/${data.id}`,
-		{
-			name: data.name,
-			position: data.position,
-		},
-		{
-			headers: { Authorization: 'Bearer ' + token },
-		},
-	);
+	return axios
+		.patch(
+			process.env.NEXT_PUBLIC_API_URL + API_ENDPOINT_LISTS + `/${data.id}`,
+			{
+				name: data.name,
+				position: data.position,
+			},
+			{
+				headers: { Authorization: 'Bearer ' + token },
+			},
+		)
+		.then((res) => res.data);
 }
