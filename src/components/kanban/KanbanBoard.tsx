@@ -4,9 +4,7 @@ import { KanbanListModel } from '../../types/kanban-list';
 import {
 	DndContext,
 	DragOverlay,
-	KeyboardSensor,
 	PointerSensor,
-	closestCenter,
 	closestCorners,
 	useSensor,
 	useSensors,
@@ -30,6 +28,7 @@ import { KanbanBoardModel } from '../../types/kanban-board';
 import { listService } from '../../services/list.service';
 import { taskService } from '../../services/task.service';
 import { POSITION_INTERVAL } from '../common/constants';
+import CreateList from './CreateList';
 
 export default function KanbanBoard({
 	board,
@@ -71,13 +70,16 @@ export default function KanbanBoard({
 	}
 
 	async function handleCreateList(event: any) {
+		setIsCreatingList(false);
+		console.log(event.target.value);
+		if (event.target.value.length === 0) return;
 		let position =
 			lists.length > 0
 				? lists[lists.length - 1].position + POSITION_INTERVAL
 				: POSITION_INTERVAL;
 		try {
 			let newList = {
-				name: 'new list #' + lists.length,
+				name: event.target.value,
 				position: position,
 				boardId: board.id,
 			};
@@ -108,7 +110,7 @@ export default function KanbanBoard({
 			);
 			toast({
 				status: 'success',
-				title: 'Created list ' + newList.name,
+				title: 'Created list:' + newList.name,
 				isClosable: true,
 				position: 'bottom-left',
 				variant: 'left-accent',
@@ -123,8 +125,6 @@ export default function KanbanBoard({
 				variant: 'left-accent',
 			});
 		}
-
-		setIsCreatingList(false);
 	}
 	async function updateList(id: string, updatedList: Partial<KanbanListModel>) {
 		try {
@@ -739,6 +739,7 @@ export default function KanbanBoard({
 					// pl={4}
 					// pr={{ base: 0, xl: 4 }}
 					p={4}
+					pr={{ base: 6 }}
 					css={{
 						scrollbarColor: 'auto',
 
@@ -784,15 +785,20 @@ export default function KanbanBoard({
 							<Button
 								size="md"
 								height="100px"
-								width="272px"
+								width="300px"
 								leftIcon={<AddIcon />}
 								variant="solid"
 								border="2px dashed black"
-								onClick={handleCreateList}
+								onClick={() => setIsCreatingList(true)}
 							>
 								Add Column
 							</Button>
-						) : null}
+						) : (
+							<CreateList
+								handleCreateList={handleCreateList}
+								setIsCreatingList={setIsCreatingList}
+							/>
+						)}
 					</Flex>
 				</HStack>
 			</Container>
