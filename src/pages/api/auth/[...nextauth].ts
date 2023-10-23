@@ -1,10 +1,11 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
-import { JWT } from 'next-auth/jwt';
 
 export const KANTAN_BACKEND_SIGNIN_ENDPOINT =
-	process.env.NEXT_PUBLIC_API_URL + '/authentication/sign-in';
+	process.env.NODE_ENV === 'development'
+		? process.env.NEXT_PUBLIC_API_URL_DEVELOPMENT + '/authentication/sign-in'
+		: process.env.NEXT_PUBLIC_API_URL + '/authentication/sign-in';
 
 export const authOptions: NextAuthOptions = {
 	secret: process.env.JWT_SECRET,
@@ -38,8 +39,17 @@ export const authOptions: NextAuthOptions = {
 						throw new Error('Unauthorized');
 					}
 					return user;
-				} catch (error) {
-					throw new Error();
+				} catch (error: any) {
+					if (error.response.status === 401) {
+						throw new Error('Unauthorized');
+					} else if (error.response.status === 500) {
+						throw new Error('Internal server error, please try again later');
+					} else if (error.response.status === 404) {
+						throw new Error('Server is down');
+					}
+					return {
+						error: error.response.data.message,
+					};
 				}
 			},
 		}),

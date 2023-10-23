@@ -7,6 +7,11 @@ export const boardService = {
 	deleteBoard,
 };
 
+export const API_URL =
+	process.env.NODE_ENV === 'development'
+		? process.env.NEXT_PUBLIC_API_URL_DEVELOPMENT
+		: process.env.NEXT_PUBLIC_API_URL;
+
 // function getBoards(url: string, token: string) {
 // 	return axios.get(process.env.NEXT_PUBLIC_API_URL + API_ENDPOINT_BOARDS, {
 // 		headers: { Authorization: 'Bearer ' + token },
@@ -14,20 +19,13 @@ export const boardService = {
 // }
 
 function createBoard(data: any, token: string) {
-	return axios.post(
-		process.env.NEXT_PUBLIC_API_URL + API_ENDPOINT_BOARDS,
-		data,
-		{
-			headers: { Authorization: 'Bearer ' + token },
-		},
-	);
+	return axios.post(API_URL + API_ENDPOINT_BOARDS, data, {
+		headers: { Authorization: 'Bearer ' + token },
+	});
 }
 
 function deleteBoard(id: string, token: string) {
-	return axios.delete(
-		process.env.NEXT_PUBLIC_API_URL + API_ENDPOINT_BOARDS + `/${id}`,
-		{
-			headers: { Authorization: 'Bearer ' + token },
-		},
-	);
+	return axios.delete(API_URL + API_ENDPOINT_BOARDS + `/${id}`, {
+		headers: { Authorization: 'Bearer ' + token },
+	});
 }

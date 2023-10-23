@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_URL } from './board.service';
 
 export const axiosHelper = {
 	get,
@@ -9,14 +10,12 @@ export const axiosHelper = {
 };
 
 function get(url: string) {
-	return axios
-		.get(process.env.NEXT_PUBLIC_API_URL + url)
-		.then((res) => res.data);
+	return axios.get(API_URL + url).then((res) => res.data);
 }
 
 function getWithToken(url: string, token: string) {
 	return axios
-		.get(process.env.NEXT_PUBLIC_API_URL + url, {
+		.get(API_URL + url, {
 			headers: {
 				Authorization: 'Bearer ' + token,
 			},
@@ -26,7 +25,7 @@ function getWithToken(url: string, token: string) {
 
 function postWithToken(url: string, token: string, data: any) {
 	return axios
-		.post(process.env.NEXT_PUBLIC_API_URL + url, data, {
+		.post(API_URL + url, data, {
 			headers: {
 				Authorization: 'Bearer ' + token,
 			},
@@ -36,7 +35,7 @@ function postWithToken(url: string, token: string, data: any) {
 
 function patchWithToken(url: string, token: string, data: any) {
 	return axios
-		.patch(process.env.NEXT_PUBLIC_API_URL + url, data, {
+		.patch(API_URL + url, data, {
 			headers: {
 				Authorization: 'Bearer ' + token,
 			},
@@ -46,7 +45,7 @@ function patchWithToken(url: string, token: string, data: any) {
 
 function deleteWithToken(url: string, token: string) {
 	return axios
-		.delete(process.env.NEXT_PUBLIC_API_URL + url, {
+		.delete(API_URL + url, {
 			headers: {
 				Authorization: 'Bearer ' + token,
 			},
