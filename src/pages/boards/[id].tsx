@@ -1,15 +1,19 @@
 import { useRouter } from 'next/router';
-import { ReactElement, useEffect } from 'react';
+import { ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import KanbanBoard from '../../components/kanban/KanbanBoard';
 import LayoutWithNavBar from '../../components/layout/LayoutWithNavBar';
 import useSWR from 'swr';
-import { API_ENDPOINT_BOARDS } from '../../components/common/constants';
+import { API_ENDPOINT_BOARDS, EVENTS } from '../../components/common/constants';
 import { axiosHelper } from '../../services/fetcher';
-import { Container, Spinner, useToast } from '@chakra-ui/react';
+import { Container, Spinner, ToastId, list, useToast } from '@chakra-ui/react';
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { io } from 'socket.io-client';
+import { KanbanListModel } from '../../types/kanban-list';
+import { AxiosError } from 'axios';
+import { KanbanBoardModel } from '../../types/kanban-board';
+import { getSocket, socket } from '../../services/socket';
 
 export default function KanbanPage({
 	user,
@@ -17,58 +21,61 @@ export default function KanbanPage({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	// console.log(id);
 	// console.log('session on client', user);
-	const websocketURL =
-		process.env.NODE_ENV === 'development'
-			? (process.env.NEXT_PUBLIC_API_URL_DEVELOPMENT as string)
-			: (process.env.NEXT_PUBLIC_API_URL as string);
+
 	const API_ENDPOINT_BOARD = API_ENDPOINT_BOARDS + '/' + id;
 	const {
 		data: board,
 		error,
 		mutate,
+		isValidating,
+		isLoading,
 	} = useSWR(
 		[API_ENDPOINT_BOARD, user.accessToken],
 		([API_ENDPOINT_BOARD, token]) =>
 			axiosHelper.getWithToken(API_ENDPOINT_BOARD, token),
+		{
+			revalidateOnFocus: false,
+			revalidateOnReconnect: true,
+			revalidateIfStale: false,
+			populateCache: true,
+		},
 	);
 	const toast = useToast();
+	const toastIdRef = useRef<ToastId>();
+
+	const socket = getSocket(user);
+
+	const [activeMembers, setActiveMembers] = useState([]);
 
 	useEffect(() => {
-		const socket = io(websocketURL, {
-			extraHeaders: {
-				Authorization: 'Bearer ' + user.accessToken,
-			},
-		});
-
-		socket.on('connect', () => {
-			if (socket.recovered) {
-				toast({
-					title: 'Reconnnected to Websocket Server!',
-					status: 'info',
-					isClosable: true,
-					duration: 5000,
-				});
-			}
-		});
-		// socket.on('disconnect', () => {
-		// 	console.log('disconnected from websocket');
-		// });
+		if (!socket.connected && !isLoading) {
+			socket.connect();
+		}
 		socket.on('message', (data) => {
 			console.log(data);
 		});
 		socket.on('authorized', (data) => {
 			socket.emit('board-join', {
-				id: id,
+				id: board.id,
 			});
-			mutate();
+			if (toastIdRef.current)
+				toast.update(toastIdRef.current, {
+					title: 'Successfully reconnected to Websocket Server',
+					status: 'success',
+					duration: 2000,
+					isClosable: true,
+					position: 'bottom-left',
+				});
+			console.log('connected', socket.id);
 		});
+
 		socket.on('disconnect', (data) => {
-			toast({
+			toastIdRef.current = toast({
 				title: 'Disconnected from Websocket Server',
-				description: 'Attempting to reconnect...',
 				status: 'warning',
 				isClosable: true,
 				duration: 5000,
+				position: 'bottom-left',
 			});
 		});
 		socket.on('error', (data) => {
@@ -82,29 +89,86 @@ export default function KanbanPage({
 				position: 'bottom-left',
 			});
 		});
-
-		socket.on('board-updated', (data) => {
+		return () => {
+			socket.disconnect();
+		};
+	}, [isLoading]);
+	useEffect(() => {
+		socket.on(EVENTS.BOARD_UPDATED, (data) => {
 			console.log('board-updated', data);
+			mutate({
+				...board,
+				...data,
+			});
 		});
 
-		socket.on('board-deleted', (data) => {
+		socket.on(EVENTS.BOARD_DELETED, (data) => {
 			console.log('board-deleted', data);
 		});
 
-		socket.on('board-active-members', (data) => {
+		socket.on(EVENTS.BOARD_ACTIVE_MEMBERS, (data) => {
 			console.log('board-active-members', data);
+			setActiveMembers(data.activeMembers);
 		});
 
-		socket.on('list-created', (data) => {
+		socket.on(EVENTS.LIST_CREATED, (data) => {
 			console.log('list-created', data);
+			mutate(
+				(board: any) => {
+					return {
+						...board,
+						lists: [...board.lists, data.content],
+					};
+				},
+				{
+					revalidate: false,
+					populateCache: true,
+				},
+			);
 		});
 
-		socket.on('list-updated', (data) => {
+		socket.on(EVENTS.LIST_UPDATED, (data) => {
 			console.log('list-updated', data);
+			mutate(
+				(board: KanbanBoardModel) => {
+					let newLists = board.lists.map((list: any) =>
+						list.id === data.content.id
+							? {
+									...list,
+									...data.content,
+							  }
+							: list,
+					);
+					if (data.content.position !== data._old.position)
+						newLists.sort((a: any, b: any) => a.position - b.position);
+					return {
+						...board,
+						lists: newLists,
+					};
+				},
+				{
+					revalidate: false,
+					populateCache: true,
+				},
+			);
 		});
 
-		socket.on('list-deleted', (data) => {
+		socket.on(EVENTS.LIST_DELETED, (data) => {
 			console.log('list-deleted', data);
+			mutate(
+				(board: any) => {
+					return {
+						...board,
+						lists: board.lists.filter(
+							(list: any) => list.id !== data.content.id,
+						),
+					};
+				},
+				{
+					revalidate: false,
+					populateCache: true,
+				},
+			);
 		});
 
 		socket.on('task-created', (data) => {
@@ -119,11 +183,8 @@ export default function KanbanPage({
 			console.log(socket.id);
 			console.log('task-deleted', data);
 		});
+	}, [isLoading]);
 
-		return () => {
-			socket.disconnect();
-		};
-	}, []);
 	if (!board)
 		return (
 			<Container

@@ -30,6 +30,7 @@ import { taskService } from '../../services/task.service';
 import { POSITION_INTERVAL } from '../common/constants';
 import CreateListBox from './CreateListBox';
 import { AxiosError } from 'axios';
+import { getSocket } from '../../services/socket';
 
 export default function KanbanBoard({
 	board,
@@ -40,9 +41,10 @@ export default function KanbanBoard({
 	mutate: any;
 	user: any;
 }) {
-	const lists = useMemo(() => board.lists, [board]);
 	const toast = useToast();
 	const dndId = useId();
+	const lists = useMemo(() => board.lists, [board]);
+
 	// useEffect(() => {
 	// 	setLists(board.lists);
 	// }, [board]);
@@ -72,7 +74,6 @@ export default function KanbanBoard({
 
 	async function handleCreateList(event: any) {
 		setIsCreatingList(false);
-		console.log(event.target.value);
 		if (event.target.value.length === 0) return;
 		let position =
 			lists.length > 0
@@ -90,13 +91,14 @@ export default function KanbanBoard({
 				tasks: [],
 				synced: false,
 			};
-			console.log('newlist:', newList);
 			await mutate(
 				async () => {
 					const createdList = await listService.createList(
 						newList,
 						user.accessToken,
 					);
+					console.log('newlist:', createdList);
+
 					return {
 						...board,
 						lists: [...lists, createdList],

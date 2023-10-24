@@ -44,14 +44,15 @@ export default function SignIn() {
 				password: values.password,
 				redirect: false,
 				callbackUrl: '/',
-			}).then(({ ok, status }: any) => {
-				console.log(status);
+			}).then(({ ok, status, error }: any) => {
+				// console.log(status, error);
 
 				if (ok) router.push('/');
 				else {
-					if (status === 500 || status === 404)
+					if (error) setError(error);
+					else if (status === 500 || status === 404)
 						setError('Internal server error, please try again later.');
-					if (status === 400 || status === 401)
+					else if (status === 400 || status === 401)
 						setError('Email or Password is invalid!');
 					else setError('');
 					if (error) formik.setSubmitting(false);

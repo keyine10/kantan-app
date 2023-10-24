@@ -11,7 +11,7 @@ import {
 import { getServerSession } from 'next-auth';
 import { GetServerSidePropsContext } from 'next';
 import { authOptions } from './api/auth/[...nextauth]';
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import useUser from '../hooks/useUser';
 import { API_ENDPOINT_BOARDS } from '../components/common/constants';
 import useSWR from 'swr';
@@ -112,7 +112,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 	// If the user is already logged in, redirect.
 	// Note: Make sure not to redirect to the same page
 	// To avoid an infinite loop!
-	console.log(session);
+	// console.log(session);
+	if (Date.parse(session?.expires as string) < Date.now()) {
+		signOut();
+		return {
+			redirect: {
+				destination: '/signin',
+				permanent: false,
+			},
+		};
+	}
 	//TODO: redirect
 	if (!session) {
 		return { redirect: { destination: '/signin' } };

@@ -20,7 +20,9 @@ function getWithToken(url: string, token: string) {
 				Authorization: 'Bearer ' + token,
 			},
 		})
-		.then((res) => res.data);
+		.then((res) => {
+			return res.data;
+		});
 }
 
 function postWithToken(url: string, token: string, data: any) {

@@ -11,7 +11,7 @@ export const authOptions: NextAuthOptions = {
 	secret: process.env.JWT_SECRET,
 	session: {
 		strategy: 'jwt',
-		maxAge: 86400,
+		maxAge: 3600,
 	},
 	providers: [
 		CredentialsProvider({
@@ -40,6 +40,9 @@ export const authOptions: NextAuthOptions = {
 					}
 					return user;
 				} catch (error: any) {
+					// console.log(error);
+					if (error?.code === 'ECONNREFUSED')
+						throw new Error('Connection Refused');
 					if (error.response.status === 401) {
 						throw new Error('Unauthorized');
 					} else if (error.response.status === 500) {
