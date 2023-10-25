@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { ReactElement, useEffect, useMemo, useRef, useState } from 'react';
+import { ReactElement, useEffect, useRef, useState } from 'react';
 import KanbanBoard from '../../components/kanban/KanbanBoard';
 import LayoutWithNavBar from '../../components/layout/LayoutWithNavBar';
 import useSWR from 'swr';
@@ -9,11 +9,10 @@ import { Container, Spinner, ToastId, list, useToast } from '@chakra-ui/react';
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
-import { io } from 'socket.io-client';
 import { KanbanListModel } from '../../types/kanban-list';
-import { AxiosError } from 'axios';
 import { KanbanBoardModel } from '../../types/kanban-board';
-import { getSocket, socket } from '../../services/socket';
+import { getSocket } from '../../services/socket';
+import { taskService } from '../../services/task.service';
 
 export default function KanbanPage({
 	user,
@@ -27,8 +26,12 @@ export default function KanbanPage({
 		data: board,
 		error,
 		mutate,
-		isValidating,
 		isLoading,
+	}: {
+		data: KanbanBoardModel;
+		error: any;
+		mutate: any;
+		isLoading: boolean;
 	} = useSWR(
 		[API_ENDPOINT_BOARD, user.accessToken],
 		([API_ENDPOINT_BOARD, token]) =>
@@ -96,10 +99,7 @@ export default function KanbanPage({
 	useEffect(() => {
 		socket.on(EVENTS.BOARD_UPDATED, (data) => {
 			console.log('board-updated', data);
-			mutate({
-				...board,
-				...data,
-			});
+			mutate();
 		});
 
 		socket.on(EVENTS.BOARD_DELETED, (data) => {
@@ -117,7 +117,9 @@ export default function KanbanPage({
 				(board: any) => {
 					return {
 						...board,
-						lists: [...board.lists, data.content],
+						lists: board.lists
+							.filter((list: any) => list.id !== data.content.id)
+							.concat(data.content),
 					};
 				},
 				{
@@ -171,17 +173,111 @@ export default function KanbanPage({
 			);
 		});
 
-		socket.on('task-created', (data) => {
+		socket.on(EVENTS.TASK_CREATED, (data) => {
 			console.log('task-created', data);
+			const task = data.content;
+			mutate(
+				(board: KanbanBoardModel) => {
+					return {
+						...board,
+						lists: board.lists.map((list: KanbanListModel) =>
+							list.id === task.listId
+								? {
+										...list,
+										tasks: list.tasks
+											.filter((t) => t.id !== task.id)
+											.concat(task),
+								  }
+								: list,
+						),
+					};
+				},
+				{
+					revalidate: false,
+					populateCache: true,
+				},
+			);
 		});
 
-		socket.on('task-updated', (data) => {
-			console.log('task-updated', data);
-		});
-
-		socket.on('task-deleted', (data) => {
-			console.log(socket.id);
+		socket.on(EVENTS.TASK_DELETED, (data) => {
 			console.log('task-deleted', data);
+			const task = data.content;
+			mutate(
+				(board: KanbanBoardModel) => {
+					return {
+						...board,
+						lists: board.lists.map((list: KanbanListModel) =>
+							list.id === task.listId
+								? {
+										...list,
+										tasks: list.tasks.filter((t) => t.id !== task.id),
+								  }
+								: list,
+						),
+					};
+				},
+				{
+					revalidate: false,
+					populateCache: true,
+				},
+			);
+		});
+
+		socket.on(EVENTS.TASK_UPDATED, (data) => {
+			console.log('task-updated', data);
+			const updatedTask = data.content;
+			const oldTask = data._old;
+			mutate(
+				(board: KanbanBoardModel) => {
+					if (updatedTask.listId === oldTask.listId) {
+						let newLists = board.lists.map((list: KanbanListModel) =>
+							list.id === updatedTask.listId
+								? {
+										...list,
+										tasks: list.tasks
+											.map((task) =>
+												task.id === updatedTask.id ? updatedTask : task,
+											)
+											.sort((a, b) => a.position - b.position),
+								  }
+								: list,
+						);
+
+						return {
+							...board,
+							lists: newLists,
+						};
+					} else {
+						let newLists = board.lists.map((list) => {
+							if (list.id === oldTask.listId) {
+								return {
+									...list,
+									tasks: list.tasks.filter((task) => task.id !== oldTask.id),
+								};
+							}
+							if (list.id === updatedTask.listId) {
+								let newTasks = list.tasks
+									.filter((task) => task.id !== oldTask.id)
+									.concat(updatedTask)
+									.sort((a, b) => a.position - b.position);
+								return {
+									...list,
+									tasks: newTasks,
+								};
+							}
+							return list;
+						});
+						return {
+							...board,
+							lists: newLists,
+						};
+					}
+				},
+				{
+					revalidate: false,
+					populateCache: true,
+				},
+			);
 		});
 	}, [isLoading]);
 

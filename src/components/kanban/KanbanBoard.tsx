@@ -451,6 +451,7 @@ export default function KanbanBoard({
 		}
 		//Dropping an item into a list
 		if (activeType === 'task' && overType === 'list') {
+			if (isMovingAcrossLists) return;
 			console.log('dropping item into a list');
 			setIsMovingAcrossLists(true);
 			let activeListIndex = findList(active.data.current.task.listId);
@@ -589,8 +590,8 @@ export default function KanbanBoard({
 			// Find the index of active and over list inside lists array
 			let activeListIndex = findList(active.data.current.task.listId);
 			let overListIndex = findList(over.data.current.task.listId);
-			console.log(active.data.current.task, over.data.current.task);
-			console.log(activeListIndex, overListIndex);
+			// console.log(active.data.current.task, over.data.current.task);
+			// console.log(activeListIndex, overListIndex);
 
 			// If active or over list is not found, return
 			if (activeListIndex < 0 || overListIndex < 0) return;
@@ -711,7 +712,7 @@ export default function KanbanBoard({
 							rollbackOnError: true,
 							populateCache: true,
 							// revalidate has to be true due to server-side reordering can trigger sometimes if difference is less than threshold
-							revalidate: true,
+							revalidate: false,
 						},
 					);
 				} catch (e) {
