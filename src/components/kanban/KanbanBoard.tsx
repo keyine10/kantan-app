@@ -5,7 +5,9 @@ import {
 	DndContext,
 	DragOverlay,
 	PointerSensor,
+	closestCenter,
 	closestCorners,
+	pointerWithin,
 	useSensor,
 	useSensors,
 } from '@dnd-kit/core';
@@ -451,7 +453,7 @@ export default function KanbanBoard({
 		}
 		//Dropping an item into a list
 		if (activeType === 'task' && overType === 'list') {
-			if (isMovingAcrossLists) return;
+			// if (isMovingAcrossLists) return;
 			console.log('dropping item into a list');
 			setIsMovingAcrossLists(true);
 			let activeListIndex = findList(active.data.current.task.listId);
@@ -477,7 +479,13 @@ export default function KanbanBoard({
 			);
 			removedTask.listId = over.id;
 			newLists[overListIndex].tasks.push(removedTask);
-			mutate({ ...board, lists: newLists });
+			mutate(
+				{ ...board, lists: newLists },
+				{
+					revalidate: false,
+					rollbackOnError: true,
+				},
+			);
 		}
 	};
 	const handleDragEnd = async (event: any) => {
@@ -569,8 +577,9 @@ export default function KanbanBoard({
 							},
 							rollbackOnError: true,
 							populateCache: true,
-							// revalidate has to be true due to server-side reordering can trigger sometimes if difference is less than threshold
-							revalidate: true,
+							// revalidate has to be true? due to server-side reordering can trigger sometimes if difference is less than threshold
+							// can be done with websocket later
+							revalidate: false,
 						},
 					);
 				} catch (e) {
@@ -617,16 +626,6 @@ export default function KanbanBoard({
 					'to',
 					overTaskIndex,
 				);
-
-				// if (activeTaskIndex === overTaskIndex) return;
-
-				// let newLists = [...lists];
-				// newLists[activeListIndex].tasks = arrayMove(
-				// 	newLists[activeListIndex].tasks,
-				// 	activeTaskIndex,
-				// 	overTaskIndex,
-				// );
-				// mutate({ ...board, lists: newLists });
 
 				let newPos = lists[activeListIndex].tasks[activeTaskIndex].position;
 				try {

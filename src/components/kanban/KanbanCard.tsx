@@ -49,6 +49,10 @@ export default function KanbanCard({
 			task,
 		},
 		disabled: isEditingTaskName || isDraggingList,
+		transition: {
+			duration: 0,
+			easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+		},
 	});
 
 	//TODO: make transition instant
