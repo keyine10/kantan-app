@@ -31,8 +31,6 @@ import { listService } from '../../services/list.service';
 import { taskService } from '../../services/task.service';
 import { POSITION_INTERVAL } from '../common/constants';
 import CreateListBox from './CreateListBox';
-import { AxiosError } from 'axios';
-import { getSocket } from '../../services/socket';
 
 export default function KanbanBoard({
 	board,
@@ -45,7 +43,6 @@ export default function KanbanBoard({
 }) {
 	const toast = useToast();
 	const dndId = useId();
-	const lists = useMemo(() => board.lists, [board]);
 
 	// useEffect(() => {
 	// 	setLists(board.lists);
@@ -63,12 +60,14 @@ export default function KanbanBoard({
 	const [isCreatingList, setIsCreatingList] = useState(false);
 	const [isMovingAcrossLists, setIsMovingAcrossLists] = useState(false);
 
-	const listsId = useMemo(() => lists.map((list) => list.id), [lists]);
-	const isDraggingList = activeList?.id
-		? listsId.includes(activeList.id)
-		: false;
 	const isDraggingTask = activeTask?.id ? true : false;
+	const isDraggingList = activeList?.id ? true : false;
 
+	const lists = useMemo(() => board.lists, [board]);
+	const listsId = useMemo(
+		() => lists.map((list) => list.id),
+		[lists, isDraggingList],
+	);
 	function findList(listId: string) {
 		// console.log('finding list', listId);
 		return lists.findIndex((list) => list.id === listId);
@@ -733,118 +732,128 @@ export default function KanbanBoard({
 		return;
 	};
 	return (
-		<DndContext
-			collisionDetection={closestCorners}
-			onDragStart={handleDragStart}
-			onDragEnd={handleDragEnd}
-			onDragOver={handleDragOver}
-			onDragCancel={handleDragCancel}
-			sensors={sensors}
-			id={dndId}
-		>
-			<Container maxW={'100%'} h={'92.9vh'} bgColor={'blue.100'} p={0}>
-				<HStack
-					h="100%"
-					spacing={8}
-					alignItems={'start'}
-					overflowX={'auto'}
-					overflowY={'hidden'}
-					// pt={4}
-					// pl={4}
-					// pr={{ base: 0, xl: 4 }}
-					p={4}
-					pr={{ base: 6 }}
-					css={{
-						scrollbarColor: 'auto',
+		<div>
+			<DndContext
+				collisionDetection={closestCorners}
+				onDragStart={handleDragStart}
+				onDragEnd={handleDragEnd}
+				onDragOver={handleDragOver}
+				onDragCancel={handleDragCancel}
+				sensors={sensors}
+				id={dndId}
+			>
+				<Container maxW={'100%'} h={'88.5vh'} bgColor={'blue.100'} p={0}>
+					<HStack
+						h="100%"
+						spacing={8}
+						alignItems={'start'}
+						overflowX={'auto'}
+						overflowY={'hidden'}
+						// pt={4}
+						// pl={4}
+						// pr={{ base: 0, xl: 4 }}
+						p={4}
+						pr={{ base: 6 }}
+						css={{
+							scrollbarColor: 'auto',
 
-						'&::-webkit-scrollbar': {
-							width: '16px',
-							height: '16px',
-						},
-						'&::-webkit-scrollbar-track': {
-							width: '0px',
-							border: 'solid 10px transparent',
-						},
-						'&::-webkit-scrollbar-thumb': {
-							background: 'black',
-							borderRadius: '16px',
-							backgroundClip: 'content-box',
-							border: 'solid 3px transparent',
-						},
-					}}
-				>
-					<SortableContext
-						items={listsId}
-						strategy={horizontalListSortingStrategy}
+							'&::-webkit-scrollbar': {
+								width: '16px',
+								height: '16px',
+							},
+							'&::-webkit-scrollbar-track': {
+								width: '0px',
+								border: 'solid 10px transparent',
+							},
+							'&::-webkit-scrollbar-thumb': {
+								background: 'black',
+								borderRadius: '16px',
+								backgroundClip: 'content-box',
+								border: 'solid 3px transparent',
+							},
+						}}
 					>
-						{board.lists.map((list: KanbanListModel) => {
-							return (
-								<KanbanList
-									list={list}
-									key={list.id}
-									isDraggingList={isDraggingList}
-									isDraggingTask={isDraggingTask}
-									createTask={createTask}
-									updateTask={updateTask}
-									deleteTask={deleteTask}
-									updateList={updateList}
-									deleteList={deleteList}
-									tasks={list.tasks}
+						<SortableContext
+							items={listsId}
+							strategy={horizontalListSortingStrategy}
+						>
+							{board.lists.map((list: KanbanListModel) => {
+								return (
+									<KanbanList
+										list={list}
+										key={list.id}
+										isDraggingList={isDraggingList}
+										isDraggingTask={isDraggingTask}
+										createTask={createTask}
+										updateTask={updateTask}
+										deleteTask={deleteTask}
+										updateList={updateList}
+										deleteList={deleteList}
+										tasks={list.tasks}
+									/>
+								);
+							})}
+						</SortableContext>
+						<Flex maxH={{ base: '98vh', xl: '99vh' }} justifyContent={'end'}>
+							{!isCreatingList ? (
+								<Button
+									size="md"
+									height="100px"
+									width="284px"
+									leftIcon={<AddIcon />}
+									variant="solid"
+									border="2px dashed black"
+									onClick={() => setIsCreatingList(true)}
+								>
+									Add List
+								</Button>
+							) : (
+								<CreateListBox
+									handleCreateList={handleCreateList}
+									setIsCreatingList={setIsCreatingList}
 								/>
-							);
-						})}
-					</SortableContext>
-					<Flex maxH={{ base: '98vh', xl: '99vh' }} justifyContent={'end'}>
-						{!isCreatingList ? (
-							<Button
-								size="md"
-								height="100px"
-								width="284px"
-								leftIcon={<AddIcon />}
-								variant="solid"
-								border="2px dashed black"
-								onClick={() => setIsCreatingList(true)}
+							)}
+						</Flex>
+					</HStack>
+				</Container>
+				{typeof window === 'object' &&
+					createPortal(
+						<DragOverlay dropAnimation={null}>
+							<div
+								style={{
+									transform: 'rotate(4deg)',
+									opacity: 0.4,
+								}}
 							>
-								Add List
-							</Button>
-						) : (
-							<CreateListBox
-								handleCreateList={handleCreateList}
-								setIsCreatingList={setIsCreatingList}
-							/>
-						)}
-					</Flex>
-				</HStack>
-			</Container>
-			{typeof window === 'object' &&
-				createPortal(
-					<DragOverlay modifiers={[restrictToWindowEdges]}>
-						{activeList && (
-							<KanbanList
-								list={activeList}
-								key={activeList.id}
-								isDraggingList={isDraggingList}
-								isDraggingTask={isDraggingTask}
-								tasks={activeList.tasks}
-								createTask={createTask}
-								updateTask={updateTask}
-								deleteTask={deleteTask}
-								updateList={updateList}
-								deleteList={deleteList}
-							/>
-						)}
-						{activeTask && (
-							<KanbanCard
-								task={activeTask}
-								key={activeTask.id}
-								isDraggingList={isDraggingList}
-								updateTask={updateTask}
-								deleteTask={deleteTask}
-							/>
-						)}
-					</DragOverlay>,
-					document.body,
-				)}
-		</DndContext>
+								{activeList && (
+									<KanbanList
+										list={activeList}
+										key={activeList.id}
+										isDraggingList={isDraggingList}
+										isDraggingTask={isDraggingTask}
+										tasks={activeList.tasks}
+										createTask={createTask}
+										updateTask={updateTask}
+										deleteTask={deleteTask}
+										updateList={updateList}
+										deleteList={deleteList}
+									/>
+								)}
+								{activeTask && (
+									<KanbanCard
+										task={activeTask}
+										key={activeTask.id}
+										isDraggingList={isDraggingList}
+										updateTask={updateTask}
+										deleteTask={deleteTask}
+										isDragOverlay={true}
+									/>
+								)}
+							</div>
+						</DragOverlay>,
+						document.body,
+					)}
+			</DndContext>
+		</div>
 	);
 }

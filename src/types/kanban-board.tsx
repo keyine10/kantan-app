@@ -1,5 +1,6 @@
 import { KanbanListModel } from './kanban-list';
 import { KanbanTaskModel } from './kanban-task';
+import { User } from './user';
 
 export interface KanbanBoardModel {
 	id: string;
@@ -16,7 +17,9 @@ export interface KanbanBoardModel {
 
 	creatorId: number;
 
-	// members: User[];
+	members: User[];
+
+	pendingMembers: string[];
 
 	lists: KanbanListModel[];
 

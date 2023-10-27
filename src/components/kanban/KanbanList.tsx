@@ -12,7 +12,7 @@ import {
 import { KanbanListModel } from '../../types/kanban-list';
 import KanbanCard from './KanbanCard';
 import { KanbanTaskModel } from '../../types/kanban-task';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
 	SortableContext,
 	verticalListSortingStrategy,
@@ -66,6 +66,11 @@ export default function KanbanList({
 			type: 'list',
 			list,
 		},
+		transition: {
+			duration: 0,
+			easing: 'cubic-bezier(0,0,0,0)',
+		},
+		disabled: isDraggingTask && list.tasks.length > 0,
 	});
 
 	const style = {
@@ -73,11 +78,12 @@ export default function KanbanList({
 		transform: CSS.Translate.toString(transform),
 	};
 	const toast = useToast();
-	// let tasksId = useMemo(
-	// 	() => list.tasks.map((task: KanbanTaskModel) => task.id),
-	// 	[list.tasks.length],
-	// );
-	let tasksId = list.tasks.map((task: KanbanTaskModel) => task.id);
+	//usememo might make cards not re-render when moving around
+	let tasksId = useMemo(
+		() => list.tasks.map((task: KanbanTaskModel) => task.id),
+		[list.tasks.length, isDraggingTask],
+	);
+	// let tasksId = list.tasks.map((task: KanbanTaskModel) => task.id);
 
 	//sorting tasks will cause a re-render when moving lists around, only employ sorted tasks when the position of the tasks are correct, otherwise it will seem incorrect
 
@@ -90,7 +96,6 @@ export default function KanbanList({
 	// );
 
 	const handleCreateTask = (event: any) => {
-		//fix duplicate create task by creating a new task while editing task name
 		event.stopPropagation();
 		setIsCreatingNewTask(false);
 		if (list.id.includes('temporary')) {
@@ -122,15 +127,15 @@ export default function KanbanList({
 	};
 	return (
 		<Box
-			maxH={{ base: '94vh', xl: '93vh' }}
+			maxH={{ base: '88vh', xl: '88vh' }}
 			rounded={'lg'}
 			boxShadow={
 				isDragging
 					? 0
 					: 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;'
 			}
-			border={isDragging ? '2px dashed black' : 'none'}
-			bgColor={'gray.50'}
+			// border={isDragging ? '2px dashed black' : 'none'}
+			bgColor={isDragging ? 'gray.400' : 'gray.50'}
 			minWidth={'284px'}
 			maxWidth={'284px'}
 			ref={setNodeRef}
@@ -200,7 +205,7 @@ export default function KanbanList({
 				direction={'column'}
 				spacing={1}
 				// p={2}
-				maxH={'75.5vh'}
+				maxH={'71vh'}
 				position={'relative'}
 				opacity={isDragging ? 0 : 1}
 				overflowY={'auto'}
@@ -227,6 +232,7 @@ export default function KanbanList({
 							task={task}
 							key={task.id}
 							isDraggingList={isDraggingList}
+							isDragOverlay={false}
 							updateTask={updateTask}
 							deleteTask={deleteTask}
 						/>
@@ -245,6 +251,7 @@ export default function KanbanList({
 						onClick={(e) => {
 							setIsCreatingNewTask(true);
 						}}
+						opacity={isDragging ? 0 : 1}
 					>
 						Add new task
 					</Button>

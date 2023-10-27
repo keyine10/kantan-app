@@ -56,7 +56,15 @@ export default function Home({ props }: any) {
 		);
 		console.log('created board:', newBoard);
 		setTimeout(() => {
-			mutate([...boards, newBoard]);
+			mutate(
+				(boards: any) => {
+					return [...boards, newBoard];
+				},
+				{
+					revalidate: true,
+					populateCache: true,
+				},
+			);
 		}, 100);
 	};
 	const deleteBoard = async (id: string) => {

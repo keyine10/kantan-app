@@ -12,17 +12,19 @@ import {
 	MenuItem,
 	Portal,
 	CardFooter,
+	border,
 } from '@chakra-ui/react';
 import { KanbanTaskModel } from '../../types/kanban-task';
 import { DeleteIcon, EditIcon, HamburgerIcon } from '@chakra-ui/icons';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface KanbanCardProps {
 	task: KanbanTaskModel;
 	isDraggingList: boolean;
+	isDragOverlay: boolean;
 	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
 	deleteTask: (id: string, listId: string) => void;
 }
@@ -31,10 +33,11 @@ export default function KanbanCard({
 	isDraggingList,
 	updateTask,
 	deleteTask,
+	isDragOverlay = false,
 }: KanbanCardProps) {
-	let buttonRef = useRef<HTMLButtonElement | null>(null);
+	let cardRef = useRef<HTMLButtonElement | null>(0);
 	const [isEditingTaskName, setIsEditingTaskName] = useState(false);
-
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const {
 		setNodeRef,
 		attributes,
@@ -83,7 +86,6 @@ export default function KanbanCard({
 			{...listeners}
 		>
 			<Card
-				opacity={isDragging ? 0.5 : 1}
 				as="div"
 				position="relative"
 				rounded={'lg'}
@@ -93,21 +95,22 @@ export default function KanbanCard({
 				my={1}
 				// maxH={500}
 				zIndex={isDragging ? 100 : 10}
-				bgColor={'white'}
-				// onMouseEnter={() => {
-				// 	if (!isEditingTaskName && !isDragging)
-				// 		buttonRef.current!.style.display = 'block';
-				// 	else buttonRef.current!.style.display = 'none';
-				// }}
-				// onMouseLeave={() => {
-				// 	buttonRef.current!.style.display = 'none';
-				// }}
+				bgColor={isDragging ? 'gray.400' : 'white'}
+				role={'group'}
+				border={'2px solid transparent'}
+				_hover={
+					isDragOverlay
+						? { border: 'none' }
+						: {
+								border: '2px',
+						  }
+				}
 				key={task.id}
 				boxShadow={
 					'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;'
 				}
 			>
-				<CardBody px={2} py={3}>
+				<CardBody px={2} py={1.5} opacity={isDragging ? 0 : 1}>
 					{isEditingTaskName ? (
 						<AutoResizeTextarea
 							border={'none'}
@@ -115,6 +118,7 @@ export default function KanbanCard({
 							defaultValue={task.name}
 							// focusBorderColor="none"
 							onBlur={handleRenameTask}
+							maxLength={50}
 							onFocus={(event: any) => {
 								event.target.selectionEnd = event.target.value.length;
 							}}
@@ -144,35 +148,47 @@ export default function KanbanCard({
 							{task.name}
 						</Text>
 					)}
-					<Menu isLazy>
-						<MenuButton
-							disabled={isDragging || isEditingTaskName}
-							display={isEditingTaskName ? 'none' : 'block'}
-							as={IconButton}
-							aria-label="Options"
-							icon={<HamburgerIcon />}
-							variant="outline"
-							position={'absolute'}
-							top={1}
-							right={1}
-							zIndex={100}
-							size="md"
-							opacity={0.3}
-							_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
-							colorScheme="gray"
-						/>
-						<Portal appendToParentPortal={false}>
-							<MenuList zIndex={1000} minWidth={10} px={2}>
-								<MenuItem icon={<EditIcon />}>Open Task...</MenuItem>
-								<MenuItem onClick={handleOnClickTask} icon={<EditIcon />}>
-									Edit Task Name
-								</MenuItem>
-								<MenuItem onClick={handleDeleteTask} icon={<DeleteIcon />}>
-									Delete Task
-								</MenuItem>
-							</MenuList>
-						</Portal>
-					</Menu>
+					<Box>
+						<Menu isLazy>
+							<MenuButton
+								disabled={isDragging || isEditingTaskName || isDragOverlay}
+								display={
+									isEditingTaskName || isDragging || isDragOverlay
+										? 'none'
+										: 'block'
+								}
+								opacity={0}
+								role={'link'}
+								_groupHover={{ opacity: 1 }}
+								_peerHover={{ opacity: 1 }}
+								as={IconButton}
+								aria-label="Options"
+								icon={<HamburgerIcon />}
+								variant="outline"
+								position={'absolute'}
+								top={1}
+								right={1}
+								zIndex={100}
+								size="sm"
+								// opacity={1}
+								background={'white'}
+								_hover={{ opacity: 1, backgroundColor: 'gray.100' }}
+								borderRadius={'100'}
+								colorScheme="gray"
+							/>
+							<Portal appendToParentPortal={false}>
+								<MenuList zIndex={1000} minWidth={10} px={2} className="peer">
+									<MenuItem icon={<EditIcon />}>Open Task...</MenuItem>
+									<MenuItem onClick={handleOnClickTask} icon={<EditIcon />}>
+										Edit Task Name
+									</MenuItem>
+									<MenuItem onClick={handleDeleteTask} icon={<DeleteIcon />}>
+										Delete Task
+									</MenuItem>
+								</MenuList>
+							</Portal>
+						</Menu>
+					</Box>
 				</CardBody>
 			</Card>
 		</Box>

@@ -13,6 +13,7 @@ import { KanbanListModel } from '../../types/kanban-list';
 import { KanbanBoardModel } from '../../types/kanban-board';
 import { getSocket } from '../../services/socket';
 import { taskService } from '../../services/task.service';
+import KanbanBoardBar from '../../components/kanban/KanbanBoardBar';
 
 export default function KanbanPage({
 	user,
@@ -45,7 +46,6 @@ export default function KanbanPage({
 	);
 	const toast = useToast();
 	const toastIdRef = useRef<ToastId>();
-
 	const socket = getSocket(user);
 
 	const [activeMembers, setActiveMembers] = useState([]);
@@ -299,14 +299,24 @@ export default function KanbanPage({
 				/>
 			</Container>
 		);
-	return <KanbanBoard board={board} mutate={mutate} user={user} />;
+	return (
+		<div>
+			<KanbanBoardBar
+				board={board}
+				mutate={mutate}
+				user={user}
+				activeMembers={activeMembers}
+			/>
+			<KanbanBoard board={board} mutate={mutate} user={user} />
+		</div>
+	);
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
 	const id = context.query.id;
 	const session = await getServerSession(context.req, context.res, authOptions);
 
-	if (!session) {
+	if (!session || !session?.user) {
 		return {
 			redirect: {
 				destination: '/signin',

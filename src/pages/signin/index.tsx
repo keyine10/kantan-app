@@ -49,8 +49,8 @@ export default function SignIn() {
 
 				if (ok) router.push('/');
 				else {
-					if (error) setError(error);
-					else if (status === 500 || status === 404)
+					console.log(status, error);
+					if (status === 500 || status === 404)
 						setError('Internal server error, please try again later.');
 					else if (status === 400 || status === 401)
 						setError('Email or Password is invalid!');

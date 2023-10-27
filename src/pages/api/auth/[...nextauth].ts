@@ -49,10 +49,7 @@ export const authOptions: NextAuthOptions = {
 						throw new Error('Internal server error, please try again later');
 					} else if (error.response.status === 404) {
 						throw new Error('Server is down');
-					}
-					return {
-						error: error.response.data.message,
-					};
+					} else throw new Error(error.message);
 				}
 			},
 		}),
@@ -69,6 +66,7 @@ export const authOptions: NextAuthOptions = {
 				},
 			};
 		},
+
 		async jwt({ token, user }) {
 			if (user) {
 				token.id = user.id;
