@@ -742,7 +742,18 @@ export default function KanbanBoard({
 				sensors={sensors}
 				id={dndId}
 			>
-				<Container maxW={'100%'} h={'88.5vh'} bgColor={'blue.100'} p={0}>
+				<Container
+					maxW={'100%'}
+					h={{
+						base: '88vh',
+						sm: '88.4vh',
+						md: '88.4vh',
+						lg: '88.4vh',
+						xl: '88.4vh',
+					}}
+					bgColor={'blue.100'}
+					p={0}
+				>
 					<HStack
 						h="100%"
 						spacing={8}
@@ -766,7 +777,7 @@ export default function KanbanBoard({
 								border: 'solid 10px transparent',
 							},
 							'&::-webkit-scrollbar-thumb': {
-								background: 'black',
+								background: '#757575',
 								borderRadius: '16px',
 								backgroundClip: 'content-box',
 								border: 'solid 3px transparent',

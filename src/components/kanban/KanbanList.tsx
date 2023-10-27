@@ -205,7 +205,7 @@ export default function KanbanList({
 				direction={'column'}
 				spacing={1}
 				// p={2}
-				maxH={'71vh'}
+				maxH={{ base: '69vh', xl: '71vh' }}
 				position={'relative'}
 				opacity={isDragging ? 0 : 1}
 				overflowY={'auto'}
@@ -218,7 +218,7 @@ export default function KanbanList({
 						border: 'solid 10px transparent',
 					},
 					'&::-webkit-scrollbar-thumb': {
-						background: 'black',
+						background: '#757575',
 						borderRadius: '16px',
 						backgroundClip: 'content-box',
 						border: 'solid 2px transparent',

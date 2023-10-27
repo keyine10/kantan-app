@@ -47,6 +47,7 @@ export default function KanbanPage({
 	const toast = useToast();
 	const toastIdRef = useRef<ToastId>();
 	const socket = getSocket(user);
+	const router = useRouter();
 
 	const [activeMembers, setActiveMembers] = useState([]);
 
@@ -73,6 +74,9 @@ export default function KanbanPage({
 		});
 
 		socket.on('disconnect', (data) => {
+			if (router.pathname !== `/boards/${id}`) {
+				return;
+			}
 			toastIdRef.current = toast({
 				title: 'Disconnected from Websocket Server',
 				status: 'warning',
