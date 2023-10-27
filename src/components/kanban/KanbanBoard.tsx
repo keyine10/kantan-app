@@ -43,10 +43,6 @@ export default function KanbanBoard({
 }) {
 	const toast = useToast();
 	const dndId = useId();
-
-	// useEffect(() => {
-	// 	setLists(board.lists);
-	// }, [board]);
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
@@ -64,10 +60,7 @@ export default function KanbanBoard({
 	const isDraggingList = activeList?.id ? true : false;
 
 	const lists = useMemo(() => board.lists, [board]);
-	const listsId = useMemo(
-		() => lists.map((list) => list.id),
-		[lists, isDraggingList],
-	);
+	const listsId = useMemo(() => lists.map((list) => list.id), [lists]);
 	function findList(listId: string) {
 		// console.log('finding list', listId);
 		return lists.findIndex((list) => list.id === listId);

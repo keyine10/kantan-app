@@ -79,11 +79,11 @@ export default function KanbanList({
 	};
 	const toast = useToast();
 	//usememo might make cards not re-render when moving around
-	let tasksId = useMemo(
-		() => list.tasks.map((task: KanbanTaskModel) => task.id),
-		[list.tasks.length, isDraggingTask],
-	);
-	// let tasksId = list.tasks.map((task: KanbanTaskModel) => task.id);
+	// let tasksId = useMemo(
+	// 	() => list.tasks.map((task: KanbanTaskModel) => task.id),
+	// 	[list.tasks.length, isDraggingTask, list.tasks],
+	// );
+	let tasksId = list.tasks.map((task: KanbanTaskModel) => task.id);
 
 	//sorting tasks will cause a re-render when moving lists around, only employ sorted tasks when the position of the tasks are correct, otherwise it will seem incorrect
 

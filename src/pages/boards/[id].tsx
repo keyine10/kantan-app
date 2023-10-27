@@ -99,7 +99,7 @@ export default function KanbanPage({
 		return () => {
 			socket.disconnect();
 		};
-	}, [isLoading]);
+	}, [isLoading, socket, toast, board.id, id, router.pathname]);
 	useEffect(() => {
 		socket.on(EVENTS.BOARD_UPDATED, (data) => {
 			console.log('board-updated', data);
@@ -283,7 +283,7 @@ export default function KanbanPage({
 				},
 			);
 		});
-	}, [isLoading]);
+	}, [isLoading, mutate, socket]);
 
 	if (!board)
 		return (

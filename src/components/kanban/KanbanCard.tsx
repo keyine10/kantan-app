@@ -35,7 +35,7 @@ export default function KanbanCard({
 	deleteTask,
 	isDragOverlay = false,
 }: KanbanCardProps) {
-	let cardRef = useRef<HTMLButtonElement | null>(0);
+	let cardRef = useRef<HTMLButtonElement | null>(null);
 	const [isEditingTaskName, setIsEditingTaskName] = useState(false);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const {
