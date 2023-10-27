@@ -52,7 +52,7 @@ export default function KanbanPage({
 	const [activeMembers, setActiveMembers] = useState([]);
 
 	useEffect(() => {
-		if (!socket.connected && !isLoading) {
+		if (!socket.connected) {
 			socket.connect();
 		}
 		socket.on('message', (data) => {
@@ -60,7 +60,7 @@ export default function KanbanPage({
 		});
 		socket.on('authorized', (data) => {
 			socket.emit('board-join', {
-				id: board.id,
+				id: id,
 			});
 			if (toastIdRef.current)
 				toast.update(toastIdRef.current, {
@@ -74,9 +74,6 @@ export default function KanbanPage({
 		});
 
 		socket.on('disconnect', (data) => {
-			if (router.pathname !== `/boards/${id}`) {
-				return;
-			}
 			toastIdRef.current = toast({
 				title: 'Disconnected from Websocket Server',
 				status: 'warning',
@@ -99,7 +96,7 @@ export default function KanbanPage({
 		return () => {
 			socket.disconnect();
 		};
-	}, [isLoading, socket, toast, board.id, id, router.pathname]);
+	});
 	useEffect(() => {
 		socket.on(EVENTS.BOARD_UPDATED, (data) => {
 			console.log('board-updated', data);
@@ -283,7 +280,7 @@ export default function KanbanPage({
 				},
 			);
 		});
-	}, [isLoading, mutate, socket]);
+	});
 
 	if (!board)
 		return (
