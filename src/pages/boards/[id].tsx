@@ -46,12 +46,13 @@ export default function KanbanPage({
 	);
 	const toast = useToast();
 	const toastIdRef = useRef<ToastId>();
-	const socket = getSocket(user);
 	const router = useRouter();
 
 	const [activeMembers, setActiveMembers] = useState([]);
 
 	useEffect(() => {
+		const socket = getSocket(user);
+
 		if (!socket.connected) {
 			socket.connect();
 		}
@@ -93,11 +94,7 @@ export default function KanbanPage({
 				position: 'bottom-left',
 			});
 		});
-		return () => {
-			socket.disconnect();
-		};
-	});
-	useEffect(() => {
+
 		socket.on(EVENTS.BOARD_UPDATED, (data) => {
 			console.log('board-updated', data);
 			mutate();
@@ -280,7 +277,7 @@ export default function KanbanPage({
 				},
 			);
 		});
-	});
+	}, []);
 
 	if (!board)
 		return (

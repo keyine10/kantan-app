@@ -94,7 +94,7 @@ export default function Navbar() {
 								// minW={0}
 							></MenuButton>
 							<Portal>
-								<MenuList zIndex={3000}>
+								<MenuList zIndex={100} px={2}>
 									<Text align={'center'}>Hello, {user?.name}</Text>
 									<MenuDivider />
 

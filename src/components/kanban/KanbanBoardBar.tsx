@@ -6,11 +6,6 @@ import {
 	Text,
 	IconButton,
 	Button,
-	Menu,
-	MenuButton,
-	MenuList,
-	MenuItem,
-	MenuDivider,
 	useColorModeValue,
 	Portal,
 	Input,
@@ -26,6 +21,14 @@ import {
 	AvatarGroup,
 	Avatar,
 	AvatarBadge,
+	Popover,
+	PopoverTrigger,
+	PopoverContent,
+	PopoverArrow,
+	PopoverBody,
+	PopoverCloseButton,
+	PopoverHeader,
+	HStack,
 } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon, AddIcon } from '@chakra-ui/icons';
 
@@ -41,14 +44,57 @@ interface Props {
 }
 
 function ActiveMembersAvatarGroup({ members }: { members: User[] }) {
+	const { isOpen, onOpen, onClose } = useDisclosure();
+
 	return (
-		<AvatarGroup mr={2}>
-			{members.map((member) => (
-				<Avatar key={member.id} name={member.name} src="" size={'sm'}>
-					<AvatarBadge borderColor="papayawhip" bg="tomato" boxSize="1.25em" />
-				</Avatar>
-			))}
-		</AvatarGroup>
+		<Popover isLazy>
+			<PopoverTrigger>
+				<AvatarGroup
+					mr={2}
+					max={4}
+					onClick={() => {
+						console.log('avatargroup');
+					}}
+					cursor={'pointer'}
+					size={'sm'}
+				>
+					{members.map((member) => (
+						<Avatar key={member.id} name={member.name} src="">
+							<AvatarBadge
+								borderColor="papayawhip"
+								bg="tomato"
+								boxSize="1.25em"
+							/>
+						</Avatar>
+					))}
+				</AvatarGroup>
+			</PopoverTrigger>
+			<Portal>
+				<PopoverContent width={'fit-content'}>
+					<PopoverArrow />
+					<PopoverHeader>Active Members</PopoverHeader>
+					<PopoverBody>
+						{members.map((member) => (
+							<HStack key={member.id}>
+								<Avatar size={'sm'} name={member.name} src="">
+									<AvatarBadge
+										borderColor="papayawhip"
+										bg="tomato"
+										boxSize="1.25em"
+									/>
+								</Avatar>
+								<Flex direction={'column'}>
+									<Text>{member.name}</Text>
+									<Text fontSize={'sm'} color={'gray.500'}>
+										{member.email}
+									</Text>
+								</Flex>
+							</HStack>
+						))}
+					</PopoverBody>
+				</PopoverContent>
+			</Portal>
+		</Popover>
 	);
 }
 

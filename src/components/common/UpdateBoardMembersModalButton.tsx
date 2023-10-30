@@ -1,4 +1,4 @@
-import { AddIcon, ArrowDownIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, DeleteIcon } from '@chakra-ui/icons';
 import {
 	useDisclosure,
 	Button,
@@ -51,8 +51,8 @@ function MemberCard({
 			</HStack>
 			<Menu>
 				<MenuButton as={IconButton} icon={<ChevronDownIcon />}></MenuButton>
-				<MenuList>
-					<MenuItem>Remove Member</MenuItem>
+				<MenuList px={2}>
+					<MenuItem icon={<DeleteIcon />}>Remove Member</MenuItem>
 				</MenuList>
 			</Menu>{' '}
 		</Flex>
@@ -77,8 +77,8 @@ function PendingMemberCard({
 			</HStack>
 			<Menu>
 				<MenuButton as={IconButton} icon={<ChevronDownIcon />}></MenuButton>
-				<MenuList>
-					<MenuItem>Remove Member</MenuItem>
+				<MenuList px={2}>
+					<MenuItem icon={<DeleteIcon />}>Remove Member</MenuItem>
 				</MenuList>
 			</Menu>
 		</Flex>

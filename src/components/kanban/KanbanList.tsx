@@ -140,7 +140,7 @@ export default function KanbanList({
 			maxWidth={'284px'}
 			ref={setNodeRef}
 			style={style}
-			zIndex={100}
+			zIndex={10}
 		>
 			<Flex direction="row" p={2} opacity={isDragging ? 0 : 1}>
 				<div>

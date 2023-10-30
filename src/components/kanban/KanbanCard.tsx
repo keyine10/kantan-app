@@ -13,6 +13,7 @@ import {
 	Portal,
 	CardFooter,
 	border,
+	useDisclosure,
 } from '@chakra-ui/react';
 import { KanbanTaskModel } from '../../types/kanban-task';
 import { DeleteIcon, EditIcon, HamburgerIcon } from '@chakra-ui/icons';
@@ -37,7 +38,7 @@ export default function KanbanCard({
 }: KanbanCardProps) {
 	let cardRef = useRef<HTMLButtonElement | null>(null);
 	const [isEditingTaskName, setIsEditingTaskName] = useState(false);
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
+
 	const {
 		setNodeRef,
 		attributes,
@@ -150,43 +151,46 @@ export default function KanbanCard({
 					)}
 					<Box>
 						<Menu isLazy>
-							<MenuButton
-								disabled={isDragging || isEditingTaskName || isDragOverlay}
-								display={
-									isEditingTaskName || isDragging || isDragOverlay
-										? 'none'
-										: 'block'
-								}
-								opacity={0}
-								role={'link'}
-								_groupHover={{ opacity: 1 }}
-								_peerHover={{ opacity: 1 }}
-								as={IconButton}
-								aria-label="Options"
-								icon={<HamburgerIcon />}
-								variant="outline"
-								position={'absolute'}
-								top={1}
-								right={1}
-								zIndex={100}
-								size="sm"
-								// opacity={1}
-								background={'white'}
-								_hover={{ opacity: 1, backgroundColor: 'gray.100' }}
-								borderRadius={'100'}
-								colorScheme="gray"
-							/>
-							<Portal appendToParentPortal={false}>
-								<MenuList zIndex={1000} minWidth={10} px={2} className="peer">
-									<MenuItem icon={<EditIcon />}>Open Task...</MenuItem>
-									<MenuItem onClick={handleOnClickTask} icon={<EditIcon />}>
-										Edit Task Name
-									</MenuItem>
-									<MenuItem onClick={handleDeleteTask} icon={<DeleteIcon />}>
-										Delete Task
-									</MenuItem>
-								</MenuList>
-							</Portal>
+							{({ isOpen }) => (
+								<>
+									<MenuButton
+										disabled={isDragging || isEditingTaskName || isDragOverlay}
+										isActive={isOpen}
+										opacity={isOpen ? 1 : 0}
+										role={'link'}
+										_groupHover={{ opacity: 1 }}
+										_peerHover={{ opacity: 1 }}
+										as={IconButton}
+										aria-label="Options"
+										icon={<HamburgerIcon />}
+										variant="outline"
+										position={'absolute'}
+										top={1}
+										right={1}
+										zIndex={100}
+										size="sm"
+										// opacity={1}
+										background={'white'}
+										_hover={{ opacity: 1, backgroundColor: 'gray.100' }}
+										borderRadius={'100'}
+										colorScheme="gray"
+									/>
+									<Portal appendToParentPortal={false}>
+										<MenuList zIndex={1000} minWidth={10} px={2}>
+											<MenuItem icon={<EditIcon />}>Open Task...</MenuItem>
+											<MenuItem onClick={handleOnClickTask} icon={<EditIcon />}>
+												Edit Task Name
+											</MenuItem>
+											<MenuItem
+												onClick={handleDeleteTask}
+												icon={<DeleteIcon />}
+											>
+												Delete Task
+											</MenuItem>
+										</MenuList>
+									</Portal>
+								</>
+							)}
 						</Menu>
 					</Box>
 				</CardBody>
