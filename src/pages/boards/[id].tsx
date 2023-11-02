@@ -5,7 +5,14 @@ import LayoutWithNavBar from '../../components/layout/LayoutWithNavBar';
 import useSWR from 'swr';
 import { API_ENDPOINT_BOARDS, EVENTS } from '../../components/common/constants';
 import { axiosHelper } from '../../services/fetcher';
-import { Container, Spinner, ToastId, list, useToast } from '@chakra-ui/react';
+import {
+	Box,
+	Container,
+	Spinner,
+	ToastId,
+	list,
+	useToast,
+} from '@chakra-ui/react';
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
@@ -277,6 +284,9 @@ export default function KanbanPage({
 				},
 			);
 		});
+		return () => {
+			socket.disconnect();
+		};
 	}, []);
 
 	if (!board)
@@ -298,7 +308,7 @@ export default function KanbanPage({
 			</Container>
 		);
 	return (
-		<div>
+		<Box bgColor={'blue.100'}>
 			<KanbanBoardBar
 				board={board}
 				mutate={mutate}
@@ -306,7 +316,7 @@ export default function KanbanPage({
 				activeMembers={activeMembers}
 			/>
 			<KanbanBoard board={board} mutate={mutate} user={user} />
-		</div>
+		</Box>
 	);
 }
 

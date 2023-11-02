@@ -744,7 +744,7 @@ export default function KanbanBoard({
 						lg: '88.4vh',
 						xl: '88.4vh',
 					}}
-					bgColor={'blue.100'}
+					// bgColor={'blue.100'}
 					p={0}
 				>
 					<HStack

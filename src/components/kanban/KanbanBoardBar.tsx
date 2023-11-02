@@ -207,7 +207,7 @@ export default function KanbanBoardBar({
 	};
 	return (
 		<>
-			<Box bg={useColorModeValue('gray.100', 'gray.900')} px={2} py={2}>
+			<Box bg="blackAlpha.200" backdropFilter="blur(20px)" px={2} py={2}>
 				<Flex alignItems={'center'} justifyContent={'space-between'}>
 					<Box px={2} py={1}>
 						{isEditingBoardName ? (

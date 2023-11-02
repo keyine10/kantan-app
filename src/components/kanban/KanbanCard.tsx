@@ -21,6 +21,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
 import { useEffect, useRef, useState } from 'react';
+import { KanbanCardModal } from './KanbanCardModal';
 
 interface KanbanCardProps {
 	task: KanbanTaskModel;
@@ -36,9 +37,8 @@ export default function KanbanCard({
 	deleteTask,
 	isDragOverlay = false,
 }: KanbanCardProps) {
-	let cardRef = useRef<HTMLButtonElement | null>(null);
 	const [isEditingTaskName, setIsEditingTaskName] = useState(false);
-
+	const { isOpen, onOpen, onClose } = useDisclosure();
 	const {
 		setNodeRef,
 		attributes,
@@ -52,7 +52,7 @@ export default function KanbanCard({
 			type: 'task',
 			task,
 		},
-		disabled: isEditingTaskName || isDraggingList,
+		disabled: isEditingTaskName || isDraggingList || isOpen,
 		transition: {
 			duration: 0,
 			easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
@@ -177,7 +177,9 @@ export default function KanbanCard({
 									/>
 									<Portal appendToParentPortal={false}>
 										<MenuList zIndex={1000} minWidth={10} px={2}>
-											<MenuItem icon={<EditIcon />}>Open Task...</MenuItem>
+											<MenuItem icon={<EditIcon />} onClick={onOpen}>
+												Open Task...
+											</MenuItem>
 											<MenuItem onClick={handleOnClickTask} icon={<EditIcon />}>
 												Edit Task Name
 											</MenuItem>
@@ -192,6 +194,7 @@ export default function KanbanCard({
 								</>
 							)}
 						</Menu>
+						<KanbanCardModal isOpen={isOpen} onClose={onClose} task={task} />
 					</Box>
 				</CardBody>
 			</Card>
