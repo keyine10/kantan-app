@@ -33,36 +33,56 @@ import * as Yup from 'yup';
 
 function MemberCard({
 	member,
-	isBoardCreator,
+	isUserBoardCreator,
+	handleRemoveBoardMember,
+	creatorId,
 }: {
 	member: User;
-	isBoardCreator: boolean;
+	isUserBoardCreator: boolean;
+	handleRemoveBoardMember: any;
+	creatorId: string;
 }) {
 	return (
 		<Flex alignItems={'center'} justifyContent={'space-between'}>
 			<HStack>
 				<Avatar size={'sm'} name={member.name} src="" />
 				<Flex direction={'column'}>
-					<Text>{member.name + (isBoardCreator ? ' (creator)' : '')}</Text>
+					<Text>
+						{member.name +
+							(Number(member.id) === Number(creatorId) ? ' (creator)' : '')}
+					</Text>
 					<Text fontSize={'sm'} color={'gray.500'}>
 						{member.email}
 					</Text>
 				</Flex>
 			</HStack>
-			<Menu>
-				<MenuButton as={IconButton} icon={<ChevronDownIcon />}></MenuButton>
-				<MenuList px={2}>
-					<MenuItem icon={<DeleteIcon />}>Remove Member</MenuItem>
-				</MenuList>
-			</Menu>{' '}
+			{isUserBoardCreator && Number(member.id) !== Number(creatorId) ? (
+				<Menu>
+					<MenuButton as={IconButton} icon={<ChevronDownIcon />}></MenuButton>
+					<MenuList px={2}>
+						<MenuItem
+							icon={<DeleteIcon />}
+							onClick={() => handleRemoveBoardMember(member.email)}
+						>
+							Remove Member
+						</MenuItem>
+					</MenuList>
+				</Menu>
+			) : (
+				<></>
+			)}
 		</Flex>
 	);
 }
 
 function PendingMemberCard({
 	pendingMemberEmail,
+	handleRemoveBoardMember,
+	isUserBoardCreator,
 }: {
 	pendingMemberEmail: string;
+	handleRemoveBoardMember: any;
+	isUserBoardCreator: boolean;
 }) {
 	return (
 		<Flex alignItems={'center'} justifyContent={'space-between'}>
@@ -75,12 +95,23 @@ function PendingMemberCard({
 					</Text>
 				</Flex>
 			</HStack>
-			<Menu>
-				<MenuButton as={IconButton} icon={<ChevronDownIcon />}></MenuButton>
-				<MenuList px={2}>
-					<MenuItem icon={<DeleteIcon />}>Remove Member</MenuItem>
-				</MenuList>
-			</Menu>
+			{isUserBoardCreator ? (
+				<Menu>
+					<MenuButton as={IconButton} icon={<ChevronDownIcon />}></MenuButton>
+					<MenuList px={2}>
+						<MenuItem
+							icon={<DeleteIcon />}
+							onClick={() => {
+								handleRemoveBoardMember(pendingMemberEmail);
+							}}
+						>
+							Remove Member
+						</MenuItem>
+					</MenuList>
+				</Menu>
+			) : (
+				<></>
+			)}
 		</Flex>
 	);
 }
@@ -90,9 +121,11 @@ export function UpdateBoardMembersModalButton({
 	members,
 	pendingMembers,
 	handleUpdateBoardMembers,
+	handleRemoveBoardMember,
 }: any) {
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const isUserBoardCreator = Number(creatorId) === Number(user.id);
 	const formik = useFormik({
 		initialValues: {
 			email: '',
@@ -121,7 +154,7 @@ export function UpdateBoardMembersModalButton({
 				mr={4}
 				leftIcon={<BsPersonAdd size={18} />}
 			>
-				{Number(creatorId) === Number(user.id) ? 'Share Board' : 'Members'}
+				{isUserBoardCreator ? 'Share Board' : 'Members'}
 			</Button>
 
 			<IconButton
@@ -144,11 +177,11 @@ export function UpdateBoardMembersModalButton({
 				<ModalOverlay />
 				<ModalContent>
 					<ModalHeader>
-						{Number(creatorId) === Number(user.id) ? 'Share Board' : 'Members'}
+						{isUserBoardCreator ? 'Share Board' : 'Members'}
 					</ModalHeader>
 					<ModalCloseButton />
 					<ModalBody>
-						{Number(creatorId) === Number(user.id) ? (
+						{isUserBoardCreator ? (
 							<>
 								<form onSubmit={formik.handleSubmit}>
 									<FormControl
@@ -192,13 +225,17 @@ export function UpdateBoardMembersModalButton({
 								<MemberCard
 									key={member.id}
 									member={member}
-									isBoardCreator={Number(creatorId) === Number(member.id)}
+									handleRemoveBoardMember={handleRemoveBoardMember}
+									isUserBoardCreator={isUserBoardCreator}
+									creatorId={creatorId}
 								/>
 							))}
 							{pendingMembers.map((pendingMemberEmail: any) => (
 								<PendingMemberCard
 									key={pendingMemberEmail}
 									pendingMemberEmail={pendingMemberEmail}
+									handleRemoveBoardMember={handleRemoveBoardMember}
+									isUserBoardCreator={isUserBoardCreator}
 								/>
 							))}
 						</Stack>

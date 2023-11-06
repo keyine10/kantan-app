@@ -205,6 +205,55 @@ export default function KanbanBoardBar({
 			mutate();
 		}
 	};
+	const handleRemoveBoardMember = async (email: string) => {
+		try {
+			let res = await boardService.removeMember(
+				{ email, id: board.id },
+				user.accessToken,
+			);
+			mutate(
+				(board: KanbanBoardModel) => {
+					return {
+						...board,
+						members: [...res.members],
+						pendingMembers: [...res.pendingMembers],
+					};
+				},
+				{
+					rollbackOnError: true,
+					populateCache: true,
+					revalidate: false,
+				},
+			);
+			toast({
+				status: 'success',
+				title: 'Successfully removed board member',
+				isClosable: true,
+				position: 'top',
+				duration: 5000,
+			});
+		} catch (e: any) {
+			if (e.response.status === 409)
+				toast({
+					status: 'error',
+					title: 'Error',
+					description: 'Email already exists',
+					isClosable: true,
+					position: 'top',
+					duration: 5000,
+				});
+			else
+				toast({
+					status: 'error',
+					title: 'Error',
+					description: 'Cannot remove board member',
+					isClosable: true,
+					position: 'top',
+					duration: 5000,
+				});
+			mutate();
+		}
+	};
 	return (
 		<>
 			<Box bg="blackAlpha.200" backdropFilter="blur(20px)" px={2} py={2}>
@@ -264,6 +313,7 @@ export default function KanbanBoardBar({
 							creatorId={board.creatorId}
 							pendingMembers={board.pendingMembers}
 							handleUpdateBoardMembers={handleUpdateBoardMembers}
+							handleRemoveBoardMember={handleRemoveBoardMember}
 						/>
 						<>
 							<IconButton

@@ -104,12 +104,14 @@ export default function KanbanCard({
 						? { border: 'none' }
 						: {
 								border: '2px',
+								backgroundColor: 'gray.100',
 						  }
 				}
 				key={task.id}
 				boxShadow={
 					'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;'
 				}
+				onClick={onOpen}
 			>
 				<CardBody px={2} py={1.5} opacity={isDragging ? 0 : 1}>
 					{isEditingTaskName ? (
@@ -156,10 +158,9 @@ export default function KanbanCard({
 									<MenuButton
 										disabled={isDragging || isEditingTaskName || isDragOverlay}
 										isActive={isOpen}
-										opacity={isOpen ? 1 : 0}
+										opacity={isOpen ? 0.8 : 0}
 										role={'link'}
-										_groupHover={{ opacity: 1 }}
-										_peerHover={{ opacity: 1 }}
+										_groupHover={{ opacity: 0.8 }}
 										as={IconButton}
 										aria-label="Options"
 										icon={<HamburgerIcon />}
@@ -174,6 +175,9 @@ export default function KanbanCard({
 										_hover={{ opacity: 1, backgroundColor: 'gray.100' }}
 										borderRadius={'100'}
 										colorScheme="gray"
+										onClick={(event) => {
+											event.stopPropagation();
+										}}
 									/>
 									<Portal appendToParentPortal={false}>
 										<MenuList zIndex={1000} minWidth={10} px={2}>

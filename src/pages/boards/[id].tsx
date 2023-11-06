@@ -51,6 +51,7 @@ export default function KanbanPage({
 			populateCache: true,
 		},
 	);
+
 	const toast = useToast();
 	const toastIdRef = useRef<ToastId>();
 	const router = useRouter();
@@ -58,6 +59,9 @@ export default function KanbanPage({
 	const [activeMembers, setActiveMembers] = useState([]);
 
 	useEffect(() => {
+		if (error && error?.response.status === 401) {
+			router.push('/');
+		}
 		const socket = getSocket(user);
 
 		if (!socket.connected) {
@@ -283,6 +287,25 @@ export default function KanbanPage({
 					populateCache: true,
 				},
 			);
+		});
+		socket.on(EVENTS.BOARD_MEMBERS_UPDATED, (data) => {
+			console.log('board-members-updated', data);
+			mutate(
+				(board: KanbanBoardModel) => {
+					return {
+						...board,
+						members: data.members,
+						pendingMembers: data.pendingMembers,
+					};
+				},
+				{
+					revalidate: false,
+					populateCache: true,
+				},
+			);
+			if (data.removedMember)
+				console.log('removed member:', data.removedMember, user);
+			if (Number(data.removedMember?.id) === Number(user.id)) router.push('/');
 		});
 		return () => {
 			socket.disconnect();

@@ -55,14 +55,26 @@ export function KanbanCardModal({ isOpen, onClose, task }: any) {
 	const folder = task.id;
 
 	const [uppy] = useState(() =>
-		new Uppy()
+		new Uppy({
+			locale: {
+				strings: {
+					dropPasteImportFiles: 'Drop files here, or browse from:',
+				},
+			},
+			restrictions: {
+				maxFileSize: 8 * 1024 * 1024,
+				maxNumberOfFiles: 5,
+				minNumberOfFiles: 1,
+				allowedFileTypes: null,
+			},
+		})
 			.use(Tus, {
 				endpoint: supabaseStorageURL,
 				headers: {
 					authorization: `Bearer ${anonKey}`,
 					apikey: anonKey,
 				},
-				chunkSize: 6 * 1024 * 1024,
+				chunkSize: 4 * 1024 * 1024,
 				allowedMetaFields: [
 					'bucketName',
 					'objectName',
@@ -142,6 +154,7 @@ export function KanbanCardModal({ isOpen, onClose, task }: any) {
 								onCloseUppy();
 							}}
 							closeModalOnClickOutside={true}
+							note={'Upload up to 5 files, maximum 8 MB each'}
 						/>
 					</ModalBody>
 					<ModalFooter>
