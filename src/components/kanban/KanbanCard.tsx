@@ -74,7 +74,8 @@ export default function KanbanCard({
 		deleteTask(task.id, task.listId);
 	};
 
-	const handleOnClickTask = () => {
+	const handleOnClickEditTask = (event: any) => {
+		event.stopPropagation();
 		setIsEditingTaskName(true);
 	};
 
@@ -85,6 +86,7 @@ export default function KanbanCard({
 			style={style}
 			{...attributes}
 			{...listeners}
+			_active={{ border: 'none' }}
 		>
 			<Card
 				as="div"
@@ -184,7 +186,10 @@ export default function KanbanCard({
 											<MenuItem icon={<EditIcon />} onClick={onOpen}>
 												Open Task...
 											</MenuItem>
-											<MenuItem onClick={handleOnClickTask} icon={<EditIcon />}>
+											<MenuItem
+												onClick={handleOnClickEditTask}
+												icon={<EditIcon />}
+											>
 												Edit Task Name
 											</MenuItem>
 											<MenuItem
@@ -198,7 +203,12 @@ export default function KanbanCard({
 								</>
 							)}
 						</Menu>
-						<KanbanCardModal isOpen={isOpen} onClose={onClose} task={task} />
+						<KanbanCardModal
+							isOpen={isOpen}
+							onClose={onClose}
+							task={task}
+							updateTask={updateTask}
+						/>
 					</Box>
 				</CardBody>
 			</Card>
