@@ -98,7 +98,7 @@ export default function KanbanCard({
 				minW={240}
 				maxW={284}
 				mx={2}
-				my={2}
+				my={1}
 				// maxH={500}
 				zIndex={isDragging ? 100 : 10}
 				bgColor={isDragging ? 'gray.400' : 'white'}

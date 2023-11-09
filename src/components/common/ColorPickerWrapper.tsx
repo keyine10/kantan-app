@@ -9,12 +9,10 @@ import {
 	PopoverCloseButton,
 	PopoverHeader,
 	PopoverBody,
-	Center,
 	SimpleGrid,
-	extendTheme,
-	Input,
-	Heading,
+	useToken,
 	PopoverFooter,
+	Input,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 
@@ -81,10 +79,9 @@ export function ColorPickerWrapper({
 						marginTop={3}
 						placeholder="red.100"
 						size="sm"
-						value={color}
+						value={useToken('colors', [color])}
 						onChange={(e) => {
 							setColor(e.target.value);
-							onPicked(e.target.value);
 						}}
 					/> */}
 				</PopoverBody>

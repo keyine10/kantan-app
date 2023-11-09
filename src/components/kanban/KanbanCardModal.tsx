@@ -38,9 +38,11 @@ import {
 	CardBody,
 	Card,
 	CardFooter,
+	useToken,
 } from '@chakra-ui/react';
 
 import { FaAlignLeft, FaFile, FaImage, FaPaperclip } from 'react-icons/fa6';
+import tinycolor from 'tinycolor2';
 
 import Uppy from '@uppy/core';
 import Tus from '@uppy/tus';
@@ -156,6 +158,10 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 	// const folder = task.id;
 	const folder = task.id;
 	const { data: session, status } = useSession();
+
+	const [backgroundColor] =
+		useToken('colors', [task.backgroundColor]) ||
+		useToken('colors', ['gray.100']);
 
 	useEffect(() => {
 		if (!isOpen) onCloseUppy();
@@ -401,7 +407,15 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 								)}
 							</Box>
 						</ModalHeader>
-						<ModalCloseButton />
+						<ModalCloseButton
+							color={
+								task.backgroundColor
+									? tinycolor(backgroundColor).isDark()
+										? 'white'
+										: 'black'
+									: 'black'
+							}
+						/>
 
 						<ModalBody>
 							<Flex
