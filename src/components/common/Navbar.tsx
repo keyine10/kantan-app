@@ -99,7 +99,6 @@ export default function Navbar() {
 									<MenuDivider />
 
 									<MenuItem>Edit Profile</MenuItem>
-									{/* <MenuItem>Link 2</MenuItem> */}
 									<MenuDivider />
 									<MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
 								</MenuList>
