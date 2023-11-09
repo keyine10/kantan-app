@@ -13,6 +13,7 @@ import {
 	Portal,
 	CardFooter,
 	border,
+	Image,
 	useDisclosure,
 } from '@chakra-ui/react';
 import { KanbanTaskModel } from '../../types/kanban-task';
@@ -97,26 +98,35 @@ export default function KanbanCard({
 				minW={240}
 				maxW={284}
 				mx={2}
-				my={1}
+				my={2}
 				// maxH={500}
 				zIndex={isDragging ? 100 : 10}
 				bgColor={isDragging ? 'gray.400' : 'white'}
 				role={'group'}
-				border={'2px solid transparent'}
+				// border={'2px solid transparent'}
 				_hover={
 					isDragOverlay
 						? { border: 'none' }
 						: {
-								border: '2px',
-								backgroundColor: 'gray.100',
+								// border: '2px',
+								// backgroundColor: 'gray.100',
+								boxShadow: 'inset 0px 0px 0px 2px #070707',
 						  }
 				}
 				key={task.id}
-				boxShadow={
-					'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;'
-				}
 				onClick={onOpen}
+				variant={'elevated'}
 			>
+				<CardHeader p={0}>
+					{task.backgroundColor && (
+						<Box
+							height={'40px'}
+							backgroundColor={task.backgroundColor}
+							roundedTop={'lg'}
+							opacity={isDragging ? 0 : 0.8}
+						/>
+					)}
+				</CardHeader>
 				<CardBody px={2} py={1.5} opacity={isDragging ? 0 : 1}>
 					{isEditingTaskName ? (
 						<AutoResizeTextarea

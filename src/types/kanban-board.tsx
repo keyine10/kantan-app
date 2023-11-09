@@ -15,6 +15,8 @@ export interface KanbanBoardModel {
 
 	// creator: User;
 
+	backgroundColor: string;
+
 	creatorId: number;
 
 	members: User[];

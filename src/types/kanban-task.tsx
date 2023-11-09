@@ -9,6 +9,10 @@ export interface KanbanTaskModel {
 
 	position: number;
 
+	backgroundColor: string;
+
+	attachments: any;
+
 	// createdAt: Date;
 
 	// updatedAt: Date;

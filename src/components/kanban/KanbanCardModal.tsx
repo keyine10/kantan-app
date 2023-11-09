@@ -1,4 +1,9 @@
-import { AddIcon, ChevronDownIcon, DeleteIcon } from '@chakra-ui/icons';
+import {
+	AddIcon,
+	ChevronDownIcon,
+	DeleteIcon,
+	InfoIcon,
+} from '@chakra-ui/icons';
 import {
 	useDisclosure,
 	Button,
@@ -35,24 +40,28 @@ import {
 	CardFooter,
 } from '@chakra-ui/react';
 
-import { FaAlignLeft, FaPaperclip } from 'react-icons/fa6';
+import { FaAlignLeft, FaFile, FaImage, FaPaperclip } from 'react-icons/fa6';
 
 import Uppy from '@uppy/core';
 import Tus from '@uppy/tus';
 import ScreenCapture from '@uppy/screen-capture';
 
 import Compressor from '@uppy/compressor';
+import ImageEditor from '@uppy/image-editor';
 import { DashboardModal } from '@uppy/react';
 
 import '@uppy/core/dist/style.min.css';
 import '@uppy/dashboard/dist/style.min.css';
 import '@uppy/screen-capture/dist/style.min.css';
+import '@uppy/image-editor/dist/style.min.css';
+
 import { supabase } from '../common/supabaseClient';
-import { Ref, useEffect, useRef, useState } from 'react';
+import { Ref, useEffect, useMemo, useRef, useState } from 'react';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
 import { randomUUID } from 'crypto';
 import { taskService } from '../../services/task.service';
 import { useSession } from 'next-auth/react';
+import { ColorPickerWrapper } from '../common/ColorPickerWrapper';
 const STORAGE_BUCKET = 'dump';
 const supabaseStorageURL = `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/upload/resumable`;
 const anonKey = `${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`;
@@ -61,9 +70,9 @@ const getPublicURL = (bucket: string, path: string) => {
 };
 
 function AttachmentCard({ file, onDeleteFile, folder }: any) {
-	let imageSrc = file.metadata?.mimetype?.includes('image')
+	let imageSrc = file.mimetype?.includes('image')
 		? getPublicURL('dump', folder + '/' + file.name)
-		: getPublicURL('dump', folder + '/' + file.name);
+		: '';
 	return (
 		<Link
 			href={getPublicURL('dump', folder + '/' + file.name)}
@@ -82,7 +91,23 @@ function AttachmentCard({ file, onDeleteFile, folder }: any) {
 				_hover={{ backgroundColor: 'gray.200' }}
 				my="1rem"
 			>
-				<Image objectFit="cover" src={imageSrc} alt="Caffe Latte" width={120} />
+				{imageSrc ? (
+					<Image
+						objectFit="cover"
+						src={imageSrc}
+						alt={file.name}
+						width={'120px'}
+						maxH={'100px'}
+					/>
+				) : (
+					<Icon
+						as={FaFile}
+						width={'120px'}
+						h={'100px'}
+						opacity={0.5}
+						bgColor={'gray.100'}
+					/>
+				)}
 				<Stack>
 					<CardBody>
 						<Heading size="sm">{file.name}</Heading>
@@ -134,7 +159,6 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 
 	useEffect(() => {
 		if (!isOpen) onCloseUppy();
-		if (isOpen) getFiles();
 	}, [isOpen]);
 	async function getFiles() {
 		const { data, error } = await supabase.storage.from('dump').list(folder);
@@ -173,39 +197,57 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 		console.log('deleted file', data);
 	}
 
-	const [uppy] = useState(() =>
-		new Uppy({
-			id: task.id,
-			meta: {
+	const uppy = useMemo(
+		() =>
+			new Uppy({
 				id: task.id,
-			},
-			locale: {
-				strings: {
-					dropPasteImportFiles: 'Drop files here, or browse from:',
+				meta: {
+					id: task.id,
 				},
-			},
-			restrictions: {
-				maxFileSize: 4 * 1024 * 1024,
-				maxNumberOfFiles: 1,
-				minNumberOfFiles: 1,
-				allowedFileTypes: null,
-			},
-		})
-			.use(Tus, {
-				endpoint: supabaseStorageURL,
-				headers: {
-					authorization: `Bearer ${anonKey}`,
-					apikey: anonKey,
+				locale: {
+					strings: {
+						dropPasteImportFiles: 'Drop files here, or browse from:',
+					},
 				},
-				allowedMetaFields: [
-					'bucketName',
-					'objectName',
-					'contentType',
-					'cacheControl',
-				],
+				restrictions: {
+					maxFileSize: 4 * 1024 * 1024,
+					minFileSize: 1,
+					maxNumberOfFiles: 1,
+					minNumberOfFiles: 1,
+					allowedFileTypes: null,
+				},
 			})
-			.use(Compressor)
-			.use(ScreenCapture),
+				.use(Tus, {
+					endpoint: supabaseStorageURL,
+					headers: {
+						authorization: `Bearer ${anonKey}`,
+						apikey: anonKey,
+					},
+					allowedMetaFields: [
+						'bucketName',
+						'objectName',
+						'contentType',
+						'cacheControl',
+					],
+					onShouldRetry(err: any, retryAttempt, options, next) {
+						console.log('onshouldretry', err?.originalResponse.getStatus());
+						if (err?.originalResponse?.getStatus() === 409) {
+							toast({
+								title: 'Error',
+								description: 'Upload error, file already existed',
+								status: 'error',
+								duration: 5000,
+								isClosable: true,
+							});
+							return false;
+						}
+						return next(err);
+					},
+				})
+				.use(Compressor)
+				.use(ScreenCapture)
+				.use(ImageEditor),
+		[],
 	);
 	useEffect(() => {
 		uppy.on('file-added', (file) => {
@@ -222,20 +264,12 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 				...file.meta,
 				...supabaseMetadata,
 			};
-			console.log();
+
 			console.log('file added', file);
 		});
 
 		uppy.on('upload-error', (file, error) => {
 			console.log('upload error', error);
-
-			toast({
-				title: 'Error',
-				description: 'Upload error, file already existed',
-				status: 'error',
-				duration: 5000,
-				isClosable: true,
-			});
 		});
 		uppy.on('complete', (result) => {
 			console.log(
@@ -243,10 +277,9 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 				task.id,
 				result.successful,
 			);
-			console.log(session);
-			getFiles();
+			// getFiles();
 		});
-		uppy.on('upload-success', async (props) => {
+		uppy.on('upload-success', async (props: any) => {
 			console.log('upload success', props);
 			try {
 				await taskService.addAttachment(
@@ -255,6 +288,7 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 						name: props.meta.name,
 						size: props.size,
 						mimetype: props.type,
+						path: folder ? `${folder}/${props.meta.name}` : props.meta.name,
 					},
 					session?.user.accessToken,
 				);
@@ -262,7 +296,10 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 				console.log(e);
 			}
 		});
-	}, [uppy]);
+		return () => {
+			uppy.close();
+		};
+	}, []);
 
 	const handleUpdateTaskName = async (event: any) => {
 		setIsEditingTaskName(false);
@@ -283,6 +320,20 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 		});
 	};
 
+	const handleUpdateBackgroundColor = async (color: string) => {
+		await updateTask(task.id, {
+			...task,
+			backgroundColor: color,
+		});
+	};
+
+	const handleRemoveBackgroundColor = async () => {
+		await updateTask(task.id, {
+			...task,
+			backgroundColor: null,
+		});
+	};
+
 	return (
 		<Portal>
 			<Modal
@@ -293,14 +344,16 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 			>
 				<ModalOverlay />
 				<Box visibility={isOpen ? 'visible' : 'hidden'}>
-					<ModalContent pl="8px" mb="3.75rem" mt="3rem" background={'gray.50'}>
-						{/* <Image
-						objectFit={'cover'}
-						maxH="150"
-						background={'gray.200'}
-						minH="100"
-						borderTopRadius={'8px'}
-					/> */}
+					<ModalContent mb="3.75rem" mt="3rem" background={'gray.50'}>
+						{task.backgroundColor && (
+							<Image
+								objectFit={'cover'}
+								maxH="150"
+								background={task.backgroundColor}
+								minH="100"
+								borderTopRadius={'8px'}
+							/>
+						)}
 						<ModalHeader>
 							<Box ml="4px">
 								{isEditingTaskName ? (
@@ -460,24 +513,20 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 										<Button
 											size={'sm'}
 											onClick={() => {
-												onOpenUppy();
+												if (task.attachments.length < 4) onOpenUppy();
+												else
+													toast({
+														title: 'Maximum 4 files',
+														status: 'info',
+														duration: 5000,
+														isClosable: true,
+													});
 											}}
 										>
 											Add
 										</Button>
 									</Flex>
 									<Box>
-										{files.map((file: any) => {
-											return (
-												<AttachmentCard
-													file={file}
-													folder={folder}
-													onDeleteFile={() => deleteFile(file)}
-													key={file.id}
-												/>
-											);
-										})}
-										<div>files in db:</div>
 										{task.attachments.map((file: any) => {
 											return (
 												<AttachmentCard
@@ -497,36 +546,50 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 									<Button
 										justifyContent={'left'}
 										size="sm"
-										width={'150px'}
+										width={'160px'}
 										leftIcon={<AddIcon />}
 									>
-										Long long button
+										Member
 									</Button>
 									<Button
 										justifyContent={'left'}
 										size="sm"
-										width={'150px'}
+										width={'160px'}
 										leftIcon={<AddIcon />}
 									>
-										button
+										Labels
+									</Button>
+									<ColorPickerWrapper
+										handleUpdateBackgroundColor={handleUpdateBackgroundColor}
+										handleRemoveBackgroundColor={handleRemoveBackgroundColor}
+										initialColor={task?.backgroundColor}
+									>
+										<Button
+											justifyContent={'left'}
+											size="sm"
+											width={'160px'}
+											leftIcon={<FaImage />}
+										>
+											Background
+										</Button>
+									</ColorPickerWrapper>
+
+									<Button
+										justifyContent={'left'}
+										size="sm"
+										width={'160px'}
+										leftIcon={<DeleteIcon />}
+									>
+										Delete Task
 									</Button>
 
 									<Button
 										justifyContent={'left'}
 										size="sm"
-										width={'150px'}
-										leftIcon={<AddIcon />}
+										width={'160px'}
+										leftIcon={<DeleteIcon />}
 									>
-										Lobutton
-									</Button>
-
-									<Button
-										justifyContent={'left'}
-										size="sm"
-										width={'150px'}
-										leftIcon={<AddIcon />}
-									>
-										on
+										Delete Background
 									</Button>
 								</VStack>
 							</Flex>
