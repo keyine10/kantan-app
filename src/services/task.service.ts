@@ -10,6 +10,8 @@ export const taskService = {
 	createTask,
 	deleteTask,
 	updateTask,
+	addAttachment,
+	removeAttachment,
 };
 
 // function getBoards(url: string, token: string) {
@@ -42,6 +44,24 @@ function updateTask(data: any, token: string) {
 				description: data.description,
 				listId: data.listId,
 			},
+			{
+				headers: { Authorization: 'Bearer ' + token },
+			},
+		)
+		.then((res) => res.data);
+}
+
+function addAttachment(taskId: any, attachment: any, token: string) {
+	return axios
+		.post(API_URL + API_ENDPOINT_TASKS + `/${taskId}/attachments`, attachment, {
+			headers: { Authorization: 'Bearer ' + token },
+		})
+		.then((res) => res.data);
+}
+function removeAttachment(taskId: string, attachmentId: string, token: string) {
+	return axios
+		.delete(
+			API_URL + API_ENDPOINT_TASKS + `/${taskId}/attachments/${attachmentId}`,
 			{
 				headers: { Authorization: 'Bearer ' + token },
 			},

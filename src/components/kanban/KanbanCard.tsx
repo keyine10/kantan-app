@@ -22,6 +22,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
 import { useEffect, useRef, useState } from 'react';
 import { KanbanCardModal } from './KanbanCardModal';
+import { useSession } from 'next-auth/react';
 
 interface KanbanCardProps {
 	task: KanbanTaskModel;
@@ -38,6 +39,7 @@ export default function KanbanCard({
 	isDragOverlay = false,
 }: KanbanCardProps) {
 	const [isEditingTaskName, setIsEditingTaskName] = useState(false);
+
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const {
 		setNodeRef,

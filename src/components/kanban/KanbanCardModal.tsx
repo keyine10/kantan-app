@@ -50,23 +50,23 @@ import '@uppy/screen-capture/dist/style.min.css';
 import { supabase } from '../common/supabaseClient';
 import { Ref, useEffect, useRef, useState } from 'react';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
-
+import { randomUUID } from 'crypto';
+import { taskService } from '../../services/task.service';
+import { useSession } from 'next-auth/react';
 const STORAGE_BUCKET = 'dump';
-
 const supabaseStorageURL = `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/upload/resumable`;
 const anonKey = `${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`;
-
 const getPublicURL = (bucket: string, path: string) => {
 	return `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/${bucket}/${path}`;
 };
 
-function AttachmentCard({ file, onDeleteFile }: any) {
+function AttachmentCard({ file, onDeleteFile, folder }: any) {
 	let imageSrc = file.metadata?.mimetype?.includes('image')
-		? getPublicURL('dump', 'temporary folder' + '/' + file.name)
-		: '';
+		? getPublicURL('dump', folder + '/' + file.name)
+		: getPublicURL('dump', folder + '/' + file.name);
 	return (
 		<Link
-			href={getPublicURL('dump', 'temporary folder' + '/' + file.name)}
+			href={getPublicURL('dump', folder + '/' + file.name)}
 			isExternal
 			_hover={{
 				textDecor: 'unset',
@@ -129,28 +129,38 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 	const toast = useToast();
 	const taskDescriptionRef = useRef(null);
 	// const folder = task.id;
-	const folder = 'temporary folder';
+	const folder = task.id;
+	const { data: session, status } = useSession();
 
 	useEffect(() => {
 		if (!isOpen) onCloseUppy();
 		if (isOpen) getFiles();
 	}, [isOpen]);
 	async function getFiles() {
-		const { data, error } = await supabase.storage
-			.from('dump')
-			.list('temporary folder');
+		const { data, error } = await supabase.storage.from('dump').list(folder);
 		if (error) return;
 		setFiles(data);
+
 		console.log('files:', data);
 	}
 	async function deleteFile(file: any) {
 		const { data, error } = await supabase.storage
 			.from('dump')
-			.remove([`temporary folder/${file.name}`]);
-		if (data)
+			.remove([`${folder}/${file.name}`]);
+		if (data) {
 			setFiles((prevFiles: any) =>
 				prevFiles.filter((f: any) => f.name !== file.name),
 			);
+			try {
+				taskService.removeAttachment(
+					task.id,
+					file.id,
+					session?.user.accessToken,
+				);
+			} catch (error) {
+				console.log(error);
+			}
+		}
 		if (error) {
 			toast({
 				title: 'Error',
@@ -165,6 +175,10 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 
 	const [uppy] = useState(() =>
 		new Uppy({
+			id: task.id,
+			meta: {
+				id: task.id,
+			},
 			locale: {
 				strings: {
 					dropPasteImportFiles: 'Drop files here, or browse from:',
@@ -172,7 +186,7 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 			},
 			restrictions: {
 				maxFileSize: 4 * 1024 * 1024,
-				maxNumberOfFiles: 5,
+				maxNumberOfFiles: 1,
 				minNumberOfFiles: 1,
 				allowedFileTypes: null,
 			},
@@ -183,7 +197,6 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 					authorization: `Bearer ${anonKey}`,
 					apikey: anonKey,
 				},
-				chunkSize: 4 * 1024 * 1024,
 				allowedMetaFields: [
 					'bucketName',
 					'objectName',
@@ -196,6 +209,9 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 	);
 	useEffect(() => {
 		uppy.on('file-added', (file) => {
+			while (files.find((f: any) => f.name === file.name)) {
+				file.name = 'Copy of' + file.name + randomUUID();
+			}
 			const supabaseMetadata = {
 				bucketName: STORAGE_BUCKET,
 				objectName: folder ? `${folder}/${file.name}` : file.name,
@@ -206,9 +222,8 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 				...file.meta,
 				...supabaseMetadata,
 			};
-
+			console.log();
 			console.log('file added', file);
-			return getFiles();
 		});
 
 		uppy.on('upload-error', (file, error) => {
@@ -224,15 +239,30 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 		});
 		uppy.on('complete', (result) => {
 			console.log(
-				'Upload complete! We’ve uploaded these files:',
+				'Upload complete! We’ve uploaded these files onto card, ',
+				task.id,
 				result.successful,
 			);
+			console.log(session);
 			getFiles();
 		});
-		uppy.on('upload-success', (props) => {
+		uppy.on('upload-success', async (props) => {
 			console.log('upload success', props);
+			try {
+				await taskService.addAttachment(
+					task.id,
+					{
+						name: props.meta.name,
+						size: props.size,
+						mimetype: props.type,
+					},
+					session?.user.accessToken,
+				);
+			} catch (e) {
+				console.log(e);
+			}
 		});
-	}, []);
+	}, [uppy]);
 
 	const handleUpdateTaskName = async (event: any) => {
 		setIsEditingTaskName(false);
@@ -441,6 +471,18 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 											return (
 												<AttachmentCard
 													file={file}
+													folder={folder}
+													onDeleteFile={() => deleteFile(file)}
+													key={file.id}
+												/>
+											);
+										})}
+										<div>files in db:</div>
+										{task.attachments.map((file: any) => {
+											return (
+												<AttachmentCard
+													file={file}
+													folder={folder}
 													onDeleteFile={() => deleteFile(file)}
 													key={file.id}
 												/>
@@ -494,11 +536,12 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 								proudlyDisplayPoweredByUppy={false}
 								open={isOpenUppy}
 								onRequestClose={() => {
+									uppy.resetProgress();
 									uppy.cancelAll();
 									onCloseUppy();
 								}}
 								closeModalOnClickOutside={true}
-								note={'Upload up to 5 files, maximum 4 MB each'}
+								note={'Maximum 4 MB'}
 							/>
 						</ModalBody>
 						<ModalFooter>
