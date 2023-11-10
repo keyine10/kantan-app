@@ -124,6 +124,7 @@ export default function KanbanBoardBar({
 	const toast = useToast();
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const btnRef = useRef(null);
+
 	const handleUpdateBoardName = async (
 		event: ChangeEvent<HTMLInputElement>,
 	) => {
@@ -277,7 +278,7 @@ export default function KanbanBoardBar({
 		let updatedBoard = await boardService.updateBoard(
 			{
 				id: board.id,
-				backgroundColor: '',
+				backgroundColor: 'gray.200',
 			},
 			user.accessToken,
 		);
@@ -351,7 +352,7 @@ export default function KanbanBoardBar({
 								whiteSpace={'nowrap'}
 								color={
 									board?.backgroundColor
-										? tinycolor(board.backgroundColor).isDark()
+										? tinycolor(board.backgroundColor).getLuminance() < 0.5
 											? 'white'
 											: 'black'
 										: 'black'

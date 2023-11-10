@@ -259,7 +259,7 @@ export default function KanbanPage({
 											.map((task) =>
 												task.id === updatedTask.id ? updatedTask : task,
 											)
-											.sort((a, b) => a.position - b.position),
+											.sort((a, b) => Number(a.position) - Number(b.position)),
 								  }
 								: list,
 						);
@@ -280,7 +280,7 @@ export default function KanbanPage({
 								let newTasks = list.tasks
 									.filter((task) => task.id !== oldTask.id)
 									.concat(updatedTask)
-									.sort((a, b) => a.position - b.position);
+									.sort((a, b) => Number(a.position) - Number(b.position));
 								return {
 									...list,
 									tasks: newTasks,

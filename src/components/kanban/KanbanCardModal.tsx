@@ -38,7 +38,6 @@ import {
 	CardBody,
 	Card,
 	CardFooter,
-	useToken,
 } from '@chakra-ui/react';
 
 import { FaAlignLeft, FaFile, FaImage, FaPaperclip } from 'react-icons/fa6';
@@ -166,7 +165,7 @@ export function KanbanCardModal({
 	const folder = task.id;
 	const { data: session, status } = useSession();
 
-	let [backgroundColor] = useToken('colors', [task.backgroundColor]);
+	let backgroundColor = task.backgroundColor;
 	if (!task.backgroundColor) {
 		backgroundColor = 'gray.100';
 	}
@@ -357,15 +356,19 @@ export function KanbanCardModal({
 			>
 				<ModalOverlay />
 				<Box visibility={isOpen ? 'visible' : 'hidden'}>
-					<ModalContent mb="3.75rem" mt="3rem" background={'gray.50'}>
+					<ModalContent
+						mb="3.75rem"
+						mt="3rem"
+						background={'gray.50'}
+						borderRadius={'lg'}
+					>
 						{task.backgroundColor && (
-							<Image
+							<Box
 								objectFit={'cover'}
 								maxH="150"
 								background={task.backgroundColor}
 								minH="100"
 								borderTopRadius={'8px'}
-								alt="task background thumbnail"
 							/>
 						)}
 						<ModalHeader>
@@ -418,7 +421,7 @@ export function KanbanCardModal({
 						<ModalCloseButton
 							color={
 								task.backgroundColor
-									? tinycolor(backgroundColor).isDark()
+									? tinycolor(backgroundColor).getLuminance() < 0.5
 										? 'white'
 										: 'black'
 									: 'black'

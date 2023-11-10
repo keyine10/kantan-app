@@ -58,13 +58,10 @@ export default function Navbar({ bgColor }: any) {
 	const handleSignOut = () => {
 		signOut({ redirect: true, callbackUrl: '/signin' });
 	};
+
 	return (
 		<>
-			<Box
-				bg={useColorModeValue('gray.200', 'gray.900')}
-				px={2}
-				bgColor={bgColor}
-			>
+			<Box px={2} bgColor={bgColor}>
 				<Flex h={12} alignItems={'center'} justifyContent={'space-between'}>
 					<HStack spacing={8} alignItems={'center'}>
 						<HStack
@@ -73,7 +70,11 @@ export default function Navbar({ bgColor }: any) {
 							display={{ base: 'flex', md: 'flex' }}
 						>
 							<NavLink key={'Boards'} link={'/'}>
-								<Text color={tinycolor(bgColor).isDark() ? 'white' : 'black'}>
+								<Text
+									color={
+										tinycolor(bgColor).getLuminance() < 0.5 ? 'white' : 'black'
+									}
+								>
 									Kantan
 								</Text>
 							</NavLink>

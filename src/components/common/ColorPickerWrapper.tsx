@@ -1,37 +1,37 @@
 import {
-	Box,
-	ChakraProvider,
 	Popover,
 	PopoverTrigger,
 	Button,
 	PopoverContent,
-	PopoverArrow,
 	PopoverCloseButton,
 	PopoverHeader,
 	PopoverBody,
 	SimpleGrid,
-	useToken,
 	PopoverFooter,
-	Input,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 const colors = [
-	'gray.500',
-	'red.500',
-	'gray.700',
-	'green.500',
-	'blue.500',
-	'blue.800',
-	'yellow.500',
-	'orange.500',
-	'purple.500',
-	'pink.500',
-	'teal.300',
-	'blue.200',
-	'pink.200',
-	'yellow.200',
-	'orange.300',
+	'#E2E8F0',
+	'#CBD5E0',
+	'#A0AEC0',
+	'#2D3748',
+	'#FC8181',
+	'#E53E3E',
+	'#63171B',
+	'#FBD38D',
+	'#C05621',
+	'#FAF089',
+	'#F6E05E',
+	'#68D391',
+	'#38A169',
+	'#38B2AC',
+	'#90CDF4',
+	'#065666',
+	'#FBB6CE',
+	'#FFF5F7',
+	'#000000',
+	'#1C4532',
 ];
 export function ColorPickerWrapper({
 	handleUpdateBackgroundColor,
@@ -41,12 +41,10 @@ export function ColorPickerWrapper({
 	closeOnBlur = true,
 }: any) {
 	const [color, setColor] = useState(initialColor ? initialColor : 'gray.500');
-
 	return (
 		<Popover variant="picker" closeOnBlur={closeOnBlur}>
 			<PopoverTrigger>{children}</PopoverTrigger>
 			<PopoverContent width="170px">
-				<PopoverArrow bg={color} />
 				<PopoverCloseButton color="white" />
 				<PopoverHeader
 					height="50px"
@@ -80,7 +78,6 @@ export function ColorPickerWrapper({
 						marginTop={3}
 						placeholder="red.100"
 						size="sm"
-						value={useToken('colors', [color])}
 						onChange={(e) => {
 							setColor(e.target.value);
 						}}
@@ -93,7 +90,7 @@ export function ColorPickerWrapper({
 						variant={'outline'}
 						onClick={() => {
 							handleRemoveBackgroundColor();
-							setColor('gray.500');
+							setColor('gray.200');
 						}}
 					>
 						Remove

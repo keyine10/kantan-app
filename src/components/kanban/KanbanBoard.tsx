@@ -86,12 +86,12 @@ export default function KanbanBoard({
 				synced: false,
 			};
 			await mutate(
-				async () => {
+				async (board: KanbanBoardModel) => {
 					const createdList = await listService.createList(
 						newList,
 						user.accessToken,
 					);
-					console.log('newlist:', createdList);
+					// console.log('newlist:', createdList);
 
 					return {
 						...board,
@@ -113,7 +113,7 @@ export default function KanbanBoard({
 				variant: 'left-accent',
 			});
 		} catch (e) {
-			console.log(e);
+			// console.log(e);
 			toast({
 				status: 'error',
 				title: 'Could not create list, please try again',
@@ -126,7 +126,7 @@ export default function KanbanBoard({
 	async function updateList(id: string, updatedList: Partial<KanbanListModel>) {
 		try {
 			await mutate(
-				async () => {
+				async (board: KanbanBoardModel) => {
 					const updatedListInDb = await listService.updateList(
 						updatedList,
 						user.accessToken,
@@ -150,7 +150,7 @@ export default function KanbanBoard({
 			);
 			return updatedList;
 		} catch (e: any) {
-			console.log(e);
+			// console.log(e);
 			toast({
 				status: 'error',
 				title:
@@ -165,7 +165,7 @@ export default function KanbanBoard({
 	async function deleteList(id: string) {
 		try {
 			await mutate(
-				async () => {
+				async (board: KanbanBoardModel) => {
 					await listService.deleteList(id, user.accessToken).then((res) => {
 						// console.log('DELETED', res);
 					});
@@ -210,12 +210,12 @@ export default function KanbanBoard({
 			};
 			let optimisticTask = {
 				description: '',
+				assignments: [],
 				...newTask,
-				tasks: [],
 				id: uuid() + 'temporary',
 			};
 			await mutate(
-				async () => {
+				async (board: KanbanBoardModel) => {
 					const createdTask = await taskService.createTask(
 						newTask,
 						user.accessToken,
@@ -251,7 +251,7 @@ export default function KanbanBoard({
 				variant: 'left-accent',
 			});
 		} catch (e) {
-			console.log(e);
+			// console.log(e);
 			toast({
 				status: 'error',
 				title: 'Could not create task, please try again',
@@ -265,7 +265,7 @@ export default function KanbanBoard({
 	async function updateTask(id: string, updatedTask: KanbanTaskModel) {
 		try {
 			await mutate(
-				async () => {
+				async (board: KanbanBoardModel) => {
 					const updatedTaskInDb = await taskService.updateTask(
 						updatedTask,
 						user.accessToken,
@@ -304,7 +304,7 @@ export default function KanbanBoard({
 				},
 			);
 		} catch (e) {
-			console.log(e);
+			// console.log(e);
 			toast({
 				status: 'error',
 				title: 'Could not update list, please try again',
@@ -317,7 +317,7 @@ export default function KanbanBoard({
 	async function deleteTask(id: string, listId: string) {
 		try {
 			await mutate(
-				async () => {
+				async (board: KanbanBoardModel) => {
 					await taskService.deleteTask(id, user.accessToken).then((res) => {
 						// console.log('DELETED', res);
 					});
@@ -425,7 +425,7 @@ export default function KanbanBoard({
 			//
 			if (activeListIndex !== overListIndex) {
 				// Sorting items in different lists
-				console.log('sorting items in different lists');
+				// console.log('sorting items in different lists');
 				setIsMovingAcrossLists(true);
 				let newLists = [...lists];
 				let [removedTask] = newLists[activeListIndex].tasks.splice(
@@ -438,7 +438,9 @@ export default function KanbanBoard({
 				newLists[overListIndex].tasks.push(removedTask);
 
 				mutate(
-					{ ...board, lists: newLists },
+					(board: KanbanBoardModel) => {
+						return { ...board, lists: newLists };
+					},
 					{ revalidate: false, rollbackOnError: true },
 				);
 			}
@@ -446,7 +448,7 @@ export default function KanbanBoard({
 		//Dropping an item into a list
 		if (activeType === 'task' && overType === 'list') {
 			// if (isMovingAcrossLists) return;
-			console.log('dropping item into a list');
+			// console.log('dropping item into a list');
 			setIsMovingAcrossLists(true);
 			let activeListIndex = findList(active.data.current.task.listId);
 			let overListIndex = lists.findIndex((list) => list.id === over.id);
@@ -472,7 +474,9 @@ export default function KanbanBoard({
 			removedTask.listId = over.id;
 			newLists[overListIndex].tasks.push(removedTask);
 			mutate(
-				{ ...board, lists: newLists },
+				(board: KanbanBoardModel) => {
+					return { ...board, lists: newLists };
+				},
 				{
 					revalidate: false,
 					rollbackOnError: true,
@@ -501,32 +505,32 @@ export default function KanbanBoard({
 					(list) => list.id === active.id,
 				);
 				const overListIndex = lists.findIndex((list) => list.id === over.id);
-				console.log('moved list', activeListIndex, 'to', overListIndex);
+				// console.log('moved list', activeListIndex, 'to', overListIndex);
 				try {
 					let newPos = lists[activeListIndex].position;
-					console.log('Moving into', lists[overListIndex].position);
+					// console.log('Moving into', lists[overListIndex].position);
 					if (overListIndex === 0) {
 						newPos = lists[overListIndex].position / 2;
-						console.log(
-							'Moving list into the start of board with new position:',
-							newPos,
-						);
+						// console.log(
+						// 	'Moving list into the start of board with new position:',
+						// 	newPos,
+						// );
 					} else if (overListIndex === lists.length - 1) {
 						newPos = lists[overListIndex].position + POSITION_INTERVAL;
-						console.log(
-							'Moving list into the end of board with new position:',
-							newPos,
-						);
+						// console.log(
+						// 	'Moving list into the end of board with new position:',
+						// 	newPos,
+						// );
 					} else {
 						let diff = 0;
 						if (activeListIndex < overListIndex) diff = 1;
 						else diff = -1;
-						console.log(
-							'Moving into between 2 lists with positions:',
-							lists[overListIndex].position,
-							'and',
-							lists[overListIndex + diff].position,
-						);
+						// console.log(
+						// 	'Moving into between 2 lists with positions:',
+						// 	lists[overListIndex].position,
+						// 	'and',
+						// 	lists[overListIndex + diff].position,
+						// );
 
 						newPos =
 							(lists[overListIndex].position +
@@ -537,7 +541,7 @@ export default function KanbanBoard({
 					let optimisticLists = [...lists];
 					optimisticLists[activeListIndex].position = newPos;
 					mutate(
-						async () => {
+						async (board: KanbanBoardModel) => {
 							//update list positions
 
 							// console.log(active.id, lists[activeListIndex]);
@@ -548,7 +552,7 @@ export default function KanbanBoard({
 								},
 								user.accessToken,
 							);
-							console.log('updated list with new position', newPos);
+							// console.log('updated list with new position', newPos);
 							return {
 								...board,
 								lists: arrayMove(
@@ -612,29 +616,29 @@ export default function KanbanBoard({
 			// if (activeTaskIndex < 0 || overTaskIndex < 0) return;
 
 			if (activeListIndex === overListIndex) {
-				console.log(
-					'moving tasks from the same list from',
-					activeTaskIndex,
-					'to',
-					overTaskIndex,
-				);
+				// console.log(
+				// 	'moving tasks from the same list from',
+				// 	activeTaskIndex,
+				// 	'to',
+				// 	overTaskIndex,
+				// );
 
 				let newPos = lists[activeListIndex].tasks[activeTaskIndex].position;
 				try {
-					console.log(
-						'Moving into',
-						lists[activeListIndex].tasks[overTaskIndex].position,
-					);
-					console.log('task is moving from another list:', isMovingAcrossLists);
+					// console.log(
+					// 	'Moving into',
+					// 	lists[activeListIndex].tasks[overTaskIndex].position,
+					// );
+					// console.log('task is moving from another list:', isMovingAcrossLists);
 					if (!isMovingAcrossLists && activeTaskIndex === overTaskIndex) return;
 
 					if (overTaskIndex === 0) {
 						if (lists[overListIndex].tasks.length > 1)
 							newPos = lists[overListIndex].tasks[overTaskIndex].position / 2;
-						console.log(
-							'Moving task into the start of list with new position:',
-							newPos,
-						);
+						// console.log(
+						// 	'Moving task into the start of list with new position:',
+						// 	newPos,
+						// );
 					} else if (overTaskIndex === lists[overListIndex].tasks.length - 1) {
 						if (isMovingAcrossLists)
 							//tasks that are moved across lists are inserted at the end of the list, therefore the real last task is always the second to last
@@ -647,21 +651,21 @@ export default function KanbanBoard({
 								lists[overListIndex].tasks[
 									lists[overListIndex].tasks.length - 1
 								].position + POSITION_INTERVAL;
-						console.log(
-							'Moving task into the end of list with new position:',
-							newPos,
-						);
+						// console.log(
+						// 	'Moving task into the end of list with new position:',
+						// 	newPos,
+						// );
 					} else {
 						let diff = 0;
 						if (activeTaskIndex < overTaskIndex) diff = 1;
 						else diff = -1;
 						if (isMovingAcrossLists) diff = -1;
-						console.log(
-							'Moving task into between 2 tasks with positions:',
-							overTaskIndex,
-							'and',
-							overTaskIndex + diff,
-						);
+						// console.log(
+						// 	'Moving task into between 2 tasks with positions:',
+						// 	overTaskIndex,
+						// 	'and',
+						// 	overTaskIndex + diff,
+						// );
 						newPos =
 							(lists[overListIndex].tasks[overTaskIndex].position +
 								lists[overListIndex].tasks[overTaskIndex + diff].position) /
@@ -677,7 +681,7 @@ export default function KanbanBoard({
 						overTaskIndex,
 					);
 					mutate(
-						async () => {
+						async (board: KanbanBoardModel) => {
 							//update task positions
 
 							// console.log(active.id, lists[activeListIndex]);
@@ -689,7 +693,7 @@ export default function KanbanBoard({
 								},
 								user.accessToken,
 							);
-							console.log('updated task with new position', updatedTaskInDb);
+							// console.log('updated task with new position', updatedTaskInDb);
 							return {
 								...board,
 								lists: optimisticLists,
@@ -717,7 +721,7 @@ export default function KanbanBoard({
 				}
 			}
 			if (activeListIndex !== overListIndex) {
-				console.log('sorting items from different list in dragend');
+				// console.log('sorting items from different list in dragend');
 			}
 		}
 
@@ -739,10 +743,10 @@ export default function KanbanBoard({
 					maxW={'100%'}
 					h={{
 						base: '88vh',
-						sm: '88.4vh',
-						md: '88.4vh',
-						lg: '88.4vh',
-						xl: '88.4vh',
+						sm: '88.5vh',
+						md: '88.5vh',
+						lg: '88.5vh',
+						xl: '88.5vh',
 					}}
 					// bgColor={'blue.100'}
 					p={0}

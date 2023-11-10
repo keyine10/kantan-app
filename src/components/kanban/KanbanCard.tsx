@@ -231,18 +231,26 @@ export default function KanbanCard({
 				</CardBody>
 				<CardFooter p={0}>
 					<HStack spacing={2}>
-						{task.description && (
+						{task?.description && (
 							<Box ml={3} my={2}>
-								<Tooltip label="Task has description" aria-label="A tooltip">
+								<Tooltip
+									label="Task has description"
+									aria-label="Description tooltip"
+									my={1}
+								>
 									<span>
 										<FaAlignLeft mx={3} mb={3} mt={1} fontSize={'0.8rem'} />
 									</span>
 								</Tooltip>
 							</Box>
 						)}
-						{task.attachments.length > 0 && (
+						{task?.attachments?.length > 0 && (
 							<Box ml={3} my={2}>
-								<Tooltip label="Task has attachments" aria-label="A tooltip">
+								<Tooltip
+									label="Task has attachments"
+									aria-label="Attachments tooltip"
+									my={1}
+								>
 									<span>
 										<FaPaperclip fontSize={'0.8rem'} />
 									</span>
