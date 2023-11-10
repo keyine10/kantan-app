@@ -22,6 +22,7 @@ import { HamburgerIcon, CloseIcon, AddIcon } from '@chakra-ui/icons';
 
 import { RxAvatar } from 'react-icons/rx';
 import { useSession, signOut } from 'next-auth/react';
+import tinycolor from 'tinycolor2';
 
 interface Props {
 	children: React.ReactNode;
@@ -50,7 +51,7 @@ const NavLink = (props: Props) => {
 	);
 };
 
-export default function Navbar() {
+export default function Navbar({ bgColor }: any) {
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const { data: session, status } = useSession();
 	const user = session?.user;
@@ -59,7 +60,11 @@ export default function Navbar() {
 	};
 	return (
 		<>
-			<Box bg={useColorModeValue('gray.200', 'gray.900')} px={2}>
+			<Box
+				bg={useColorModeValue('gray.200', 'gray.900')}
+				px={2}
+				bgColor={bgColor}
+			>
 				<Flex h={12} alignItems={'center'} justifyContent={'space-between'}>
 					<HStack spacing={8} alignItems={'center'}>
 						<HStack
@@ -68,7 +73,9 @@ export default function Navbar() {
 							display={{ base: 'flex', md: 'flex' }}
 						>
 							<NavLink key={'Boards'} link={'/'}>
-								Kantan
+								<Text color={tinycolor(bgColor).isDark() ? 'white' : 'black'}>
+									Kantan
+								</Text>
 							</NavLink>
 						</HStack>
 					</HStack>

@@ -29,14 +29,24 @@ import {
 	PopoverCloseButton,
 	PopoverHeader,
 	HStack,
+	VStack,
 } from '@chakra-ui/react';
-import { HamburgerIcon, CloseIcon, AddIcon } from '@chakra-ui/icons';
+import {
+	HamburgerIcon,
+	CloseIcon,
+	AddIcon,
+	DeleteIcon,
+} from '@chakra-ui/icons';
 
 import { ChangeEvent, useRef, useState } from 'react';
 import { KanbanBoardModel } from '../../types/kanban-board';
 import { boardService } from '../../services/board.service';
 import { UpdateBoardMembersModalButton } from '../common/UpdateBoardMembersModalButton';
 import { User } from '../../types/user';
+import { ConfirmModalWrapper } from '../common/ConfirmModalWrapper';
+import { ColorPickerWrapper } from '../common/ColorPickerWrapper';
+import { FaImage } from 'react-icons/fa6';
+import tinycolor from 'tinycolor2';
 
 interface Props {
 	children: React.ReactNode;
@@ -254,9 +264,48 @@ export default function KanbanBoardBar({
 			mutate();
 		}
 	};
+	const handleUpdateBackgroundColor = async (color: string) => {
+		let updatedBoard = await boardService.updateBoard(
+			{
+				...board,
+				backgroundColor: color,
+			},
+			user.accessToken,
+		);
+	};
+	const handleRemoveBackgroundColor = async () => {
+		let updatedBoard = await boardService.updateBoard(
+			{
+				id: board.id,
+				backgroundColor: '',
+			},
+			user.accessToken,
+		);
+	};
+
+	const handleDeleteBoard = async (id: string) => {
+		try {
+			await boardService.deleteBoard(id, user?.accessToken);
+			toast({
+				status: 'success',
+				title: 'Deleted board!',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		} catch (e) {
+			toast({
+				status: 'error',
+				title: 'Could not delete board, please try again',
+				isClosable: true,
+				position: 'bottom-left',
+				variant: 'left-accent',
+			});
+		}
+	};
 	return (
 		<>
-			<Box bg="blackAlpha.200" backdropFilter="blur(20px)" px={2} py={2}>
+			<Box bg="blackAlpha.400" backdropFilter="blur(40px)" px={2} py={2}>
 				<Flex alignItems={'center'} justifyContent={'space-between'}>
 					<Box px={2} py={1}>
 						{isEditingBoardName ? (
@@ -300,6 +349,13 @@ export default function KanbanBoardBar({
 								maxH={'32px'}
 								maxW={'10em'}
 								whiteSpace={'nowrap'}
+								color={
+									board?.backgroundColor
+										? tinycolor(board.backgroundColor).isDark()
+											? 'white'
+											: 'black'
+										: 'black'
+								}
 							>
 								{board.title}
 							</Text>
@@ -333,18 +389,57 @@ export default function KanbanBoardBar({
 								<DrawerOverlay />
 								<DrawerContent>
 									<DrawerCloseButton />
-									<DrawerHeader>Create your account</DrawerHeader>
+									<DrawerHeader>Menu</DrawerHeader>
 
-									<DrawerBody>
-										<Input placeholder="Type here..." />
+									<DrawerBody px="1rem">
+										<VStack alignItems={'left'}>
+											<Button
+												justifyContent={'left'}
+												leftIcon={<AddIcon />}
+												variant={'ghost'}
+											>
+												About
+											</Button>
+
+											<ColorPickerWrapper
+												handleUpdateBackgroundColor={
+													handleUpdateBackgroundColor
+												}
+												handleRemoveBackgroundColor={
+													handleRemoveBackgroundColor
+												}
+											>
+												<Button
+													justifyContent={'left'}
+													leftIcon={<FaImage />}
+													variant={'ghost'}
+												>
+													Background
+												</Button>
+											</ColorPickerWrapper>
+
+											<ConfirmModalWrapper
+												label={'Board'}
+												onDelete={handleDeleteBoard}
+											>
+												<Button
+													justifyContent={'left'}
+													leftIcon={<DeleteIcon />}
+													variant={'ghost'}
+													width={'100%'}
+												>
+													Delete Board
+												</Button>
+											</ConfirmModalWrapper>
+										</VStack>
 									</DrawerBody>
 
-									<DrawerFooter>
+									{/* <DrawerFooter>
 										<Button variant="outline" mr={3} onClick={onClose}>
 											Cancel
 										</Button>
 										<Button colorScheme="blue">Save</Button>
-									</DrawerFooter>
+									</DrawerFooter> */}
 								</DrawerContent>
 							</Drawer>
 						</>

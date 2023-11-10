@@ -1,9 +1,9 @@
 import React, { PropsWithChildren } from 'react';
 import Navbar from '../common/Navbar';
-const LayoutWithNavBar = ({ children }: PropsWithChildren) => {
+const LayoutWithNavBar = ({ children, ...props }: PropsWithChildren) => {
 	return (
 		<>
-			<Navbar />
+			<Navbar {...props} />
 			{children}
 		</>
 	);

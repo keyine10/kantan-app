@@ -20,7 +20,7 @@ import { KanbanListModel } from '../../types/kanban-list';
 import { KanbanBoardModel } from '../../types/kanban-board';
 import { getSocket } from '../../services/socket';
 import { taskService } from '../../services/task.service';
-import KanbanBoardBar from '../../components/kanban/KanbanBoardBar';
+import KanbanBoardBar from '@/components/kanban/KanbanBoardBar';
 
 export default function KanbanPage({
 	user,
@@ -108,11 +108,23 @@ export default function KanbanPage({
 
 		socket.on(EVENTS.BOARD_UPDATED, (data) => {
 			console.log('board-updated', data);
-			mutate();
+			mutate(
+				(board: KanbanBoardModel) => {
+					return {
+						...board,
+						...data.content,
+					};
+				},
+				{
+					revalidate: true,
+					populateCache: true,
+				},
+			);
 		});
 
 		socket.on(EVENTS.BOARD_DELETED, (data) => {
 			console.log('board-deleted', data);
+			router.push('/');
 		});
 
 		socket.on(EVENTS.BOARD_ACTIVE_MEMBERS, (data) => {
@@ -158,7 +170,7 @@ export default function KanbanPage({
 					};
 				},
 				{
-					revalidate: false,
+					revalidate: true,
 					populateCache: true,
 				},
 			);
@@ -331,15 +343,21 @@ export default function KanbanPage({
 			</Container>
 		);
 	return (
-		<Box bgColor={'blue.100'}>
-			<KanbanBoardBar
-				board={board}
-				mutate={mutate}
-				user={user}
-				activeMembers={activeMembers}
-			/>
-			<KanbanBoard board={board} mutate={mutate} user={user} />
-		</Box>
+		<LayoutWithNavBar
+			bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
+		>
+			<Box
+				bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
+			>
+				<KanbanBoardBar
+					board={board}
+					mutate={mutate}
+					user={user}
+					activeMembers={activeMembers}
+				/>
+				<KanbanBoard board={board} mutate={mutate} user={user} />
+			</Box>
+		</LayoutWithNavBar>
 	);
 }
 
@@ -359,6 +377,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 	const { user } = session;
 	return { props: { id, user } };
 }
-KanbanPage.getLayout = function getLayout(page: ReactElement) {
-	return <LayoutWithNavBar>{page}</LayoutWithNavBar>;
-};
+// KanbanPage.getLayout = function getLayout(page: ReactElement) {
+// 	return <LayoutWithNavBar>{page}</LayoutWithNavBar>;
+// };

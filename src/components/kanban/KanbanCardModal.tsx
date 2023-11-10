@@ -64,6 +64,7 @@ import { randomUUID } from 'crypto';
 import { taskService } from '../../services/task.service';
 import { useSession } from 'next-auth/react';
 import { ColorPickerWrapper } from '../common/ColorPickerWrapper';
+import { ConfirmModalWrapper } from '../common/ConfirmModalWrapper';
 const STORAGE_BUCKET = 'dump';
 const supabaseStorageURL = `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/upload/resumable`;
 const anonKey = `${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`;
@@ -143,7 +144,13 @@ function AttachmentCard({ file, onDeleteFile, folder }: any) {
 	);
 }
 
-export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
+export function KanbanCardModal({
+	isOpen,
+	onClose,
+	task,
+	updateTask,
+	handleDeleteTask,
+}: any) {
 	const {
 		onOpen: onOpenUppy,
 		onClose: onCloseUppy,
@@ -527,7 +534,7 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 										<Button
 											size={'sm'}
 											onClick={() => {
-												if (task.attachments.length < 4) onOpenUppy();
+												if (task.attachments?.length < 4) onOpenUppy();
 												else
 													toast({
 														title: 'Maximum 4 files',
@@ -541,21 +548,22 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 										</Button>
 									</Flex>
 									<Box>
-										{task.attachments.map((file: any) => {
-											return (
-												<AttachmentCard
-													file={file}
-													folder={folder}
-													onDeleteFile={() => deleteFile(file)}
-													key={file.id}
-												/>
-											);
-										})}
+										{task.attachments &&
+											task.attachments.map((file: any) => {
+												return (
+													<AttachmentCard
+														file={file}
+														folder={folder}
+														onDeleteFile={() => deleteFile(file)}
+														key={file.id}
+													/>
+												);
+											})}
 									</Box>
 								</Box>
 								<VStack alignItems={'left'}>
 									<Heading as="h3" fontSize={'14'}>
-										Add to card
+										Actions
 									</Heading>
 									<Button
 										justifyContent={'left'}
@@ -565,14 +573,14 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 									>
 										Member
 									</Button>
-									<Button
+									{/* <Button
 										justifyContent={'left'}
 										size="sm"
 										width={'160px'}
 										leftIcon={<AddIcon />}
 									>
 										Labels
-									</Button>
+									</Button> */}
 									<ColorPickerWrapper
 										handleUpdateBackgroundColor={handleUpdateBackgroundColor}
 										handleRemoveBackgroundColor={handleRemoveBackgroundColor}
@@ -588,20 +596,28 @@ export function KanbanCardModal({ isOpen, onClose, task, updateTask }: any) {
 										</Button>
 									</ColorPickerWrapper>
 
-									<Button
-										justifyContent={'left'}
-										size="sm"
-										width={'160px'}
-										leftIcon={<DeleteIcon />}
+									<ConfirmModalWrapper
+										label={'Task'}
+										onDelete={handleDeleteTask}
 									>
-										Delete Task
-									</Button>
+										<Button
+											justifyContent={'left'}
+											size="sm"
+											width={'160px'}
+											leftIcon={<DeleteIcon />}
+										>
+											Delete Task
+										</Button>
+									</ConfirmModalWrapper>
 
 									<Button
 										justifyContent={'left'}
 										size="sm"
 										width={'160px'}
 										leftIcon={<DeleteIcon />}
+										onClick={() => {
+											handleRemoveBackgroundColor();
+										}}
 									>
 										Delete Background
 									</Button>

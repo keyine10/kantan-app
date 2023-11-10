@@ -8,6 +8,11 @@ import {
 	Flex,
 	Textarea,
 	useToast,
+	Menu,
+	MenuButton,
+	MenuItem,
+	MenuList,
+	Portal,
 } from '@chakra-ui/react';
 import { KanbanListModel } from '../../types/kanban-list';
 import KanbanCard from './KanbanCard';
@@ -19,10 +24,13 @@ import {
 	useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AddIcon, HamburgerIcon, DeleteIcon } from '@chakra-ui/icons';
+import { AddIcon, HamburgerIcon, DeleteIcon, EditIcon } from '@chakra-ui/icons';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
 import { POSITION_INTERVAL } from '../common/constants';
 import CreateTaskBox from './CreateTaskBox';
+import { ConfirmModalWrapper } from '../common/ConfirmModalWrapper';
+import { FaImage } from 'react-icons/fa6';
+import { ColorPickerWrapper } from '../common/ColorPickerWrapper';
 
 interface KanbanListProps {
 	list: KanbanListModel;
@@ -125,6 +133,13 @@ export default function KanbanList({
 	const handleDeleteList = () => {
 		deleteList(list.id);
 	};
+
+	const handleUpdateBackgroundColor = (color: string) => {
+		updateList(list.id, { ...list, backgroundColor: color });
+	};
+	const handleRemoveBackgroundColor = (color: string) => {
+		updateList(list.id, { ...list, backgroundColor: '' });
+	};
 	return (
 		<Box
 			maxH={{ base: '88vh', xl: '88vh' }}
@@ -134,7 +149,13 @@ export default function KanbanList({
 					? 0
 					: 'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;'
 			}
-			// border={isDragging ? '2px dashed black' : 'none'}
+			border={'4px solid'}
+			borderRadius={'xl'}
+			borderColor={
+				!isDragging && list.backgroundColor
+					? list.backgroundColor
+					: 'transparent'
+			}
 			bgColor={isDragging ? 'gray.400' : 'gray.50'}
 			minWidth={'284px'}
 			maxWidth={'284px'}
@@ -142,7 +163,7 @@ export default function KanbanList({
 			style={style}
 			zIndex={10}
 		>
-			<Flex direction="row" p={2} opacity={isDragging ? 0 : 1}>
+			<Flex direction="row" px={2} py={1} opacity={isDragging ? 0 : 1}>
 				<div>
 					<Heading fontSize={'md'} {...attributes} {...listeners}>
 						{isEditingListName ? (
@@ -190,16 +211,35 @@ export default function KanbanList({
 						)}
 					</Heading>
 				</div>
-				<IconButton
-					aria-label="options"
-					size="md"
-					opacity={0.7}
-					_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
-					variant="ghost"
-					colorScheme="gray"
-					icon={<DeleteIcon />}
-					onClick={handleDeleteList}
-				/>
+				<Menu isLazy closeOnSelect={false}>
+					<>
+						<MenuButton
+							role={'link'}
+							as={IconButton}
+							aria-label="Options"
+							icon={<HamburgerIcon />}
+							variant="ghost"
+							zIndex={100}
+							size="md"
+							// opacity={1}
+							// background={'gray.50'}
+						/>
+						<Portal appendToParentPortal={true}>
+							<MenuList zIndex={1000} minWidth={10} px={2}>
+								<ColorPickerWrapper
+									handleUpdateBackgroundColor={handleUpdateBackgroundColor}
+									handleRemoveBackgroundColor={handleRemoveBackgroundColor}
+									closeOnBlur={false}
+								>
+									<MenuItem icon={<FaImage />}>Change list color</MenuItem>
+								</ColorPickerWrapper>
+								<MenuItem icon={<DeleteIcon />} onClick={handleDeleteList}>
+									Delete list
+								</MenuItem>
+							</MenuList>
+						</Portal>
+					</>
+				</Menu>
 			</Flex>
 			<Stack
 				direction={'column'}

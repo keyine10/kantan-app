@@ -36,6 +36,7 @@ function updateList(data: any, token: string) {
 			{
 				name: data.name,
 				position: data.position,
+				backgroundColor: data.backgroundColor,
 			},
 			{
 				headers: { Authorization: 'Bearer ' + token },

@@ -37,6 +37,7 @@ function updateBoard(data: Partial<KanbanBoardModel>, token: string) {
 			{
 				title: data.title,
 				description: data.description,
+				backgroundColor: data.backgroundColor,
 			},
 			{
 				headers: { Authorization: 'Bearer ' + token },

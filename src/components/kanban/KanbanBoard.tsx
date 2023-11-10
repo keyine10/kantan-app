@@ -806,7 +806,7 @@ export default function KanbanBoard({
 									width="284px"
 									leftIcon={<AddIcon />}
 									variant="solid"
-									border="2px dashed black"
+									border="1px solid black"
 									onClick={() => setIsCreatingList(true)}
 								>
 									Add List

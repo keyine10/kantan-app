@@ -7,5 +7,7 @@ export interface KanbanListModel {
 
 	position: number;
 
+	backgroundColor: string;
+
 	tasks: KanbanTaskModel[];
 }

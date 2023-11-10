@@ -15,6 +15,8 @@ import {
 	border,
 	Image,
 	useDisclosure,
+	Tooltip,
+	HStack,
 } from '@chakra-ui/react';
 import { KanbanTaskModel } from '../../types/kanban-task';
 import { DeleteIcon, EditIcon, HamburgerIcon } from '@chakra-ui/icons';
@@ -24,6 +26,8 @@ import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
 import { useEffect, useRef, useState } from 'react';
 import { KanbanCardModal } from './KanbanCardModal';
 import { useSession } from 'next-auth/react';
+import { ConfirmModalWrapper } from '../common/ConfirmModalWrapper';
+import { Fa0, FaAlignLeft, FaPaperclip } from 'react-icons/fa6';
 
 interface KanbanCardProps {
 	task: KanbanTaskModel;
@@ -178,7 +182,7 @@ export default function KanbanCard({
 										as={IconButton}
 										aria-label="Options"
 										icon={<HamburgerIcon />}
-										variant="outline"
+										variant="ghost"
 										position={'absolute'}
 										top={1}
 										right={1}
@@ -204,9 +208,10 @@ export default function KanbanCard({
 											>
 												Edit Task Name
 											</MenuItem>
+
 											<MenuItem
-												onClick={handleDeleteTask}
 												icon={<DeleteIcon />}
+												onClick={handleDeleteTask}
 											>
 												Delete Task
 											</MenuItem>
@@ -220,9 +225,32 @@ export default function KanbanCard({
 							onClose={onClose}
 							task={task}
 							updateTask={updateTask}
+							handleDeleteTask={handleDeleteTask}
 						/>
 					</Box>
 				</CardBody>
+				<CardFooter p={0}>
+					<HStack spacing={2}>
+						{task.description && (
+							<Box ml={3} my={2}>
+								<Tooltip label="Task has description" aria-label="A tooltip">
+									<span>
+										<FaAlignLeft mx={3} mb={3} mt={1} fontSize={'0.8rem'} />
+									</span>
+								</Tooltip>
+							</Box>
+						)}
+						{task.attachments.length > 0 && (
+							<Box ml={3} my={2}>
+								<Tooltip label="Task has attachments" aria-label="A tooltip">
+									<span>
+										<FaPaperclip fontSize={'0.8rem'} />
+									</span>
+								</Tooltip>
+							</Box>
+						)}
+					</HStack>
+				</CardFooter>
 			</Card>
 		</Box>
 	);

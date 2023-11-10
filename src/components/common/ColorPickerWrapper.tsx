@@ -38,11 +38,12 @@ export function ColorPickerWrapper({
 	handleRemoveBackgroundColor,
 	initialColor,
 	children,
+	closeOnBlur = true,
 }: any) {
 	const [color, setColor] = useState(initialColor ? initialColor : 'gray.500');
 
 	return (
-		<Popover variant="picker">
+		<Popover variant="picker" closeOnBlur={closeOnBlur}>
 			<PopoverTrigger>{children}</PopoverTrigger>
 			<PopoverContent width="170px">
 				<PopoverArrow bg={color} />
