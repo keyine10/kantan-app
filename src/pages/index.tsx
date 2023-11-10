@@ -109,6 +109,7 @@ export default function Home({ props }: any) {
 					mutate={mutate}
 					createBoard={createBoard}
 					deleteBoard={deleteBoard}
+					user={user}
 				/>
 			</Container>
 		</>

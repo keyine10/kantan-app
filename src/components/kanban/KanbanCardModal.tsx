@@ -166,13 +166,13 @@ export function KanbanCardModal({
 	const folder = task.id;
 	const { data: session, status } = useSession();
 
-	const [backgroundColor] =
-		useToken('colors', [task.backgroundColor]) ||
-		useToken('colors', ['gray.100']);
-
+	let [backgroundColor] = useToken('colors', [task.backgroundColor]);
+	if (!task.backgroundColor) {
+		backgroundColor = 'gray.100';
+	}
 	useEffect(() => {
 		if (!isOpen) onCloseUppy();
-	}, [isOpen]);
+	}, [isOpen, onCloseUppy]);
 	async function getFiles() {
 		const { data, error } = await supabase.storage.from('dump').list(folder);
 		if (error) return;
@@ -365,6 +365,7 @@ export function KanbanCardModal({
 								background={task.backgroundColor}
 								minH="100"
 								borderTopRadius={'8px'}
+								alt="task background thumbnail"
 							/>
 						)}
 						<ModalHeader>

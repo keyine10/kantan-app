@@ -38,6 +38,7 @@ export default function KanbanBoardListing({
 	isLoading,
 	createBoard,
 	deleteBoard,
+	user,
 }: {
 	isLoading: boolean;
 	boards: KanbanBoardModel[];
@@ -50,6 +51,7 @@ export default function KanbanBoardListing({
 		description: string;
 	}) => void;
 	deleteBoard: (id: string) => void;
+	user: any;
 }) {
 	const { onOpen, onClose, isOpen } = useDisclosure();
 	const [isDeletingBoardId, setisDeletingBoardId] = useState('');
@@ -98,44 +100,50 @@ export default function KanbanBoardListing({
 								}
 							>
 								<Flex
-									bgColor="gray.200"
+									bgColor="gray.50"
 									height="100px"
 									width="272px"
-									p={4}
+									p={2}
 									borderRadius={8}
 									_hover={{
 										bgColor: 'gray.300',
 									}}
+									border={'4px solid transparent'}
+									borderColor={
+										board.backgroundColor ? board.backgroundColor : 'black'
+									}
 									cursor={'pointer'}
 									userSelect={'none'}
 									transition={'all 0.2s ease'}
 									justifyContent={'space-between'}
 								>
 									<Text textDecoration={'none'}>{board.title}</Text>
-									<IconButton
-										float={'right'}
-										aria-label="options"
-										size="md"
-										opacity={0.7}
-										_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
-										variant="ghost"
-										colorScheme="gray"
-										icon={<DeleteIcon />}
-										zIndex={10}
-										isLoading={isDeletingBoardId === board.id}
-										onClick={async (e) => {
-											e.preventDefault();
-											e.stopPropagation();
+									{Number(board.creatorId) === Number(user.id) && (
+										<IconButton
+											float={'right'}
+											aria-label="options"
+											size="md"
+											opacity={0.7}
+											_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
+											variant="ghost"
+											colorScheme="gray"
+											icon={<DeleteIcon />}
+											zIndex={10}
+											isLoading={isDeletingBoardId === board.id}
+											onClick={async (e) => {
+												e.preventDefault();
+												e.stopPropagation();
 
-											try {
-												setisDeletingBoardId(board.id);
-												await deleteBoard(board.id);
-												setisDeletingBoardId('');
-											} catch (error) {
-												setisDeletingBoardId('');
-											}
-										}}
-									/>
+												try {
+													setisDeletingBoardId(board.id);
+													await deleteBoard(board.id);
+													setisDeletingBoardId('');
+												} catch (error) {
+													setisDeletingBoardId('');
+												}
+											}}
+										/>
+									)}
 								</Flex>
 							</Link>
 						</Box>

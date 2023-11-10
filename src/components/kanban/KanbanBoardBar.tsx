@@ -422,14 +422,16 @@ export default function KanbanBoardBar({
 												label={'Board'}
 												onDelete={handleDeleteBoard}
 											>
-												<Button
-													justifyContent={'left'}
-													leftIcon={<DeleteIcon />}
-													variant={'ghost'}
-													width={'100%'}
-												>
-													Delete Board
-												</Button>
+												{Number(board.creatorId) === Number(user.id) && (
+													<Button
+														justifyContent={'left'}
+														leftIcon={<DeleteIcon />}
+														variant={'ghost'}
+														width={'100%'}
+													>
+														Delete Board
+													</Button>
+												)}
 											</ConfirmModalWrapper>
 										</VStack>
 									</DrawerBody>
