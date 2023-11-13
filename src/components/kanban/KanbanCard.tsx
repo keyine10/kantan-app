@@ -17,6 +17,10 @@ import {
 	useDisclosure,
 	Tooltip,
 	HStack,
+	Tag,
+	TagLabel,
+	WrapItem,
+	Wrap,
 } from '@chakra-ui/react';
 import { KanbanTaskModel } from '../../types/kanban-task';
 import { DeleteIcon, EditIcon, HamburgerIcon } from '@chakra-ui/icons';
@@ -28,6 +32,7 @@ import { KanbanCardModal } from './KanbanCardModal';
 import { useSession } from 'next-auth/react';
 import { ConfirmModalWrapper } from '../common/ConfirmModalWrapper';
 import { Fa0, FaAlignLeft, FaPaperclip } from 'react-icons/fa6';
+import tinycolor from 'tinycolor2';
 
 interface KanbanCardProps {
 	task: KanbanTaskModel;
@@ -132,6 +137,26 @@ export default function KanbanCard({
 					)}
 				</CardHeader>
 				<CardBody px={2} py={1.5} opacity={isDragging ? 0 : 1}>
+					<Wrap>
+						{task.tags.map((tag: any) => (
+							<WrapItem key={tag.id}>
+								<Tag
+									size={'sm'}
+									key={tag.id}
+									variant="solid"
+									backgroundColor={tag.backgroundColor}
+									color={
+										tinycolor(tag.backgroundColor).getLuminance() < 0.5
+											? 'white'
+											: 'black'
+									}
+								>
+									<TagLabel>{tag.name}</TagLabel>
+								</Tag>
+							</WrapItem>
+						))}
+					</Wrap>
+
 					{isEditingTaskName ? (
 						<AutoResizeTextarea
 							border={'none'}

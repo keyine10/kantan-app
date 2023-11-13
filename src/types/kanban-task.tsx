@@ -13,6 +13,8 @@ export interface KanbanTaskModel {
 
 	attachments: any;
 
+	tags: any;
+
 	// createdAt: Date;
 
 	// updatedAt: Date;

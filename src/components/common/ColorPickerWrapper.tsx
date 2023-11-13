@@ -8,8 +8,14 @@ import {
 	PopoverBody,
 	SimpleGrid,
 	PopoverFooter,
+	Input,
+	Flex,
+	Box,
+	VStack,
+	useDisclosure,
 } from '@chakra-ui/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import tinycolor from 'tinycolor2';
 
 const colors = [
 	'#E2E8F0',
@@ -33,19 +39,77 @@ const colors = [
 	'#000000',
 	'#1C4532',
 ];
+const defaultColor = '#555555';
 export function ColorPickerWrapper({
-	handleUpdateBackgroundColor,
-	handleRemoveBackgroundColor,
+	variant = 'default',
+	tag,
+
+	handleUpdateBackgroundColor = () => {},
+	handleRemoveBackgroundColor = () => {},
+	handleCreateTag = () => {},
+	handleUpdateTag = () => {},
+	handleDeleteTag = () => {},
 	initialColor,
 	children,
 	closeOnBlur = true,
 }: any) {
-	const [color, setColor] = useState(initialColor ? initialColor : 'gray.500');
+	const [color, setColor] = useState(
+		initialColor ? initialColor : defaultColor,
+	);
+	const [tagName, setTagName] = useState(tag ? tag?.name : '');
+	const { isOpen, onOpen, onClose } = useDisclosure();
+	const handleSaveTag = () => {
+		console.log('saving tag');
+		if (!tag) {
+			if (tagName) {
+				console.log('creating tag', tagName, color);
+
+				handleCreateTag({ name: tagName, backgroundColor: color });
+			}
+		} else if (tagName !== tag.name || color !== tag.backgroundColor)
+			handleUpdateTag({
+				id: tag.id,
+				name: tagName ? tagName : tag.name,
+				backgroundColor: color,
+			});
+	};
+	// useEffect(() => {
+	// 	// console.log('running every time');
+	// 	if (tag) {
+	// 		setColor(tag.backgroundColor);
+	// 		setTagName(tag.name);
+	// 	}
+	// });
+	const onOpenPicker = () => {
+		setTagName(tag ? tag.name : '');
+		setColor(initialColor ? initialColor : defaultColor);
+		onOpen();
+	};
+
+	const onClosePicker = () => {
+		onClose();
+		if (!tag) {
+			setTagName('');
+			setColor(defaultColor);
+		}
+	};
 	return (
-		<Popover variant="picker" closeOnBlur={closeOnBlur}>
-			<PopoverTrigger>{children}</PopoverTrigger>
-			<PopoverContent width="170px">
-				<PopoverCloseButton color="white" />
+		<Popover
+			variant="picker"
+			isLazy
+			onClose={onClosePicker}
+			closeOnBlur={closeOnBlur}
+			isOpen={isOpen}
+			onOpen={onOpenPicker}
+		>
+			<PopoverTrigger>
+				<div onClick={onOpenPicker}>{children}</div>
+			</PopoverTrigger>
+			<PopoverContent width="200px">
+				<PopoverCloseButton
+					color={tinycolor(color).getLuminance() < 0.5 ? 'white' : 'black'}
+					onClick={onClosePicker}
+				/>
 				<PopoverHeader
 					height="50px"
 					backgroundColor={color}
@@ -54,48 +118,86 @@ export function ColorPickerWrapper({
 					color="white"
 				></PopoverHeader>
 				<PopoverBody height="100%">
-					<SimpleGrid columns={5} spacing={2}>
+					<SimpleGrid columns={5} spacing={1.5}>
 						{colors.map((c) => (
 							<Button
 								key={c}
 								aria-label={c}
 								background={c}
-								height="22px"
-								width="22px"
+								height="1.5rem"
+								width="100%"
 								padding={0}
 								minWidth="unset"
 								borderRadius={3}
 								_hover={{ background: c }}
 								onClick={() => {
 									setColor(c);
-									handleUpdateBackgroundColor(c);
+									if (variant !== 'tag') handleUpdateBackgroundColor(c);
 								}}
 							></Button>
 						))}
 					</SimpleGrid>
-					{/* <Input
-						borderRadius={3}
-						marginTop={3}
-						placeholder="red.100"
-						size="sm"
-						onChange={(e) => {
-							setColor(e.target.value);
-						}}
-					/> */}
-				</PopoverBody>
-				<PopoverFooter>
+					{variant === 'tag' && (
+						<Input
+							borderRadius={3}
+							marginTop={3}
+							maxLength={50}
+							defaultValue={tagName}
+							size="sm"
+							onChange={(e) => {
+								setTagName(e.target.value);
+							}}
+						/>
+					)}
 					<Button
 						size="sm"
 						width={'100%'}
 						variant={'outline'}
 						onClick={() => {
 							handleRemoveBackgroundColor();
-							setColor('gray.200');
+							// handleUpdateBackgroundColor(defaultColor);
+							setColor(defaultColor);
 						}}
+						my={2}
 					>
-						Remove
+						Remove Background
 					</Button>
-				</PopoverFooter>
+				</PopoverBody>
+				{variant === 'tag' && (
+					<PopoverFooter>
+						<Flex justifyContent={'space-between'}>
+							<Button
+								size="sm"
+								variant={'solid'}
+								colorScheme="blue"
+								type="submit"
+								onClick={(e) => {
+									e.stopPropagation();
+									e.preventDefault();
+									handleSaveTag();
+									onClosePicker();
+								}}
+							>
+								Save
+							</Button>
+							{tag && (
+								<Button
+									colorScheme="red"
+									size="sm"
+									variant={'solid'}
+									onClick={(e) => {
+										e.stopPropagation();
+										e.preventDefault();
+										handleDeleteTag();
+										onClosePicker();
+									}}
+								>
+									Delete
+								</Button>
+							)}
+						</Flex>
+					</PopoverFooter>
+				)}
 			</PopoverContent>
 		</Popover>
 	);

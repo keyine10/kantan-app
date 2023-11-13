@@ -211,6 +211,7 @@ export default function KanbanBoard({
 			let optimisticTask = {
 				description: '',
 				assignments: [],
+				tags: [],
 				...newTask,
 				id: uuid() + 'temporary',
 			};

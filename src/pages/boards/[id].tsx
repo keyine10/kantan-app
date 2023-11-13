@@ -62,6 +62,7 @@ export default function KanbanPage({
 		if (error && error?.response.status === 401) {
 			router.push('/');
 		}
+		if (error) router.push('/');
 		const socket = getSocket(user);
 
 		if (!socket.connected) {

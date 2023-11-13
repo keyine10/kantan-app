@@ -284,9 +284,9 @@ export default function KanbanBoardBar({
 		);
 	};
 
-	const handleDeleteBoard = async (id: string) => {
+	const handleDeleteBoard = async () => {
 		try {
-			await boardService.deleteBoard(id, user?.accessToken);
+			await boardService.deleteBoard(board.id, user?.accessToken);
 			toast({
 				status: 'success',
 				title: 'Deleted board!',

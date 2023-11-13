@@ -38,6 +38,12 @@ import {
 	CardBody,
 	Card,
 	CardFooter,
+	Tag,
+	TagCloseButton,
+	TagLabel,
+	Wrap,
+	WrapItem,
+	TagRightIcon,
 } from '@chakra-ui/react';
 
 import { FaAlignLeft, FaFile, FaImage, FaPaperclip } from 'react-icons/fa6';
@@ -57,27 +63,27 @@ import '@uppy/screen-capture/dist/style.min.css';
 import '@uppy/image-editor/dist/style.min.css';
 
 import { supabase } from '../common/supabaseClient';
-import { Ref, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
-import { randomUUID } from 'crypto';
 import { taskService } from '../../services/task.service';
 import { useSession } from 'next-auth/react';
 import { ColorPickerWrapper } from '../common/ColorPickerWrapper';
 import { ConfirmModalWrapper } from '../common/ConfirmModalWrapper';
-const STORAGE_BUCKET = 'dump';
+
+const STORAGE_BUCKET = 'attachment';
 const supabaseStorageURL = `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/upload/resumable`;
 const anonKey = `${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`;
-const getPublicURL = (bucket: string, path: string) => {
-	return `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/${bucket}/${path}`;
+const getPublicURL = (path: string) => {
+	return `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/${STORAGE_BUCKET}/${path}`;
 };
 
 function AttachmentCard({ file, onDeleteFile, folder }: any) {
 	let imageSrc = file.mimetype?.includes('image')
-		? getPublicURL('dump', folder + '/' + file.name)
+		? getPublicURL(folder + '/' + file.name)
 		: '';
 	return (
 		<Link
-			href={getPublicURL('dump', folder + '/' + file.name)}
+			href={getPublicURL(folder + '/' + file.name)}
 			isExternal
 			_hover={{
 				textDecor: 'unset',
@@ -162,7 +168,7 @@ export function KanbanCardModal({
 	const toast = useToast();
 	const taskDescriptionRef = useRef(null);
 	// const folder = task.id;
-	const folder = task.id;
+	const folder = task.boardId + '/' + task.listId + '/' + task.id;
 	const { data: session, status } = useSession();
 
 	let backgroundColor = task.backgroundColor;
@@ -173,15 +179,15 @@ export function KanbanCardModal({
 		if (!isOpen) onCloseUppy();
 	}, [isOpen, onCloseUppy]);
 	async function getFiles() {
-		const { data, error } = await supabase.storage.from('dump').list(folder);
+		const { data, error } = await supabase.storage
+			.from(STORAGE_BUCKET)
+			.list(folder);
 		if (error) return;
 		setFiles(data);
-
-		console.log('files:', data);
 	}
 	async function deleteFile(file: any) {
 		const { data, error } = await supabase.storage
-			.from('dump')
+			.from(STORAGE_BUCKET)
 			.remove([`${folder}/${file.name}`]);
 		if (data) {
 			setFiles((prevFiles: any) =>
@@ -263,9 +269,6 @@ export function KanbanCardModal({
 	);
 	useEffect(() => {
 		uppy.on('file-added', (file) => {
-			while (files.find((f: any) => f.name === file.name)) {
-				file.name = 'Copy of' + file.name + randomUUID();
-			}
 			const supabaseMetadata = {
 				bucketName: STORAGE_BUCKET,
 				objectName: folder ? `${folder}/${file.name}` : file.name,
@@ -294,6 +297,7 @@ export function KanbanCardModal({
 		uppy.on('upload-success', async (props: any) => {
 			console.log('upload success', props);
 			try {
+				console.log('uploading to backend database');
 				await taskService.addAttachment(
 					task.id,
 					{
@@ -305,7 +309,7 @@ export function KanbanCardModal({
 					session?.user.accessToken,
 				);
 			} catch (e) {
-				console.log(e);
+				console.log('upload to backend error', e);
 			}
 		});
 		return () => {
@@ -346,6 +350,33 @@ export function KanbanCardModal({
 		});
 	};
 
+	const handleCreateTag = async ({
+		name,
+		backgroundColor,
+	}: {
+		name: string;
+		backgroundColor: string;
+	}) => {
+		try {
+			console.log('creating tag', name, backgroundColor);
+
+			await taskService.addTag(
+				task.id,
+				{ name: name, backgroundColor: backgroundColor },
+				session?.user.accessToken,
+			);
+		} catch (e) {
+			console.log('error creating tag', e);
+		}
+	};
+	const handleUpdateTag = async (tag: any) => {
+		console.log('updating tag', tag);
+		await taskService.updateTag(task.id, tag, session?.user.accessToken);
+	};
+	const handleDeleteTag = async (tag: any) => {
+		console.log('deleting tag', tag);
+		await taskService.removeTag(task.id, tag.id, session?.user.accessToken);
+	};
 	return (
 		<Portal>
 			<Modal
@@ -432,9 +463,77 @@ export function KanbanCardModal({
 							<Flex
 								justifyContent={{ base: 'space-evenly', md: 'space-between' }}
 								flexDirection={{ base: 'column', md: 'row' }}
-								my="4px"
+								mb="4px"
 							>
 								<Box m="10px" width={{ base: '100%', md: '75%' }}>
+									<Box>
+										<Wrap>
+											{task.tags.map((tag: any) => (
+												<WrapItem key={tag.id}>
+													<ColorPickerWrapper
+														variant="tag"
+														tag={tag}
+														handleDeleteTag={() => handleDeleteTag(tag)}
+														handleUpdateTag={handleUpdateTag}
+														initialColor={tag.backgroundColor}
+													>
+														<Tag
+															size={'md'}
+															border="2px solid transparent"
+															key={tag.id}
+															variant="solid"
+															backgroundColor={tag.backgroundColor}
+															color={
+																tinycolor(tag.backgroundColor).getLuminance() <
+																0.5
+																	? 'white'
+																	: 'black'
+															}
+															_hover={{
+																border: '2px solid black',
+																backgroundColor: tinycolor(tag.backgroundColor)
+																	.lighten(5)
+																	.toHexString(),
+															}}
+															cursor={'pointer'}
+														>
+															<TagLabel>{tag.name}</TagLabel>
+															<TagCloseButton
+																onClick={(e) => {
+																	e.stopPropagation();
+																	handleDeleteTag(tag);
+																}}
+															/>
+														</Tag>
+													</ColorPickerWrapper>
+												</WrapItem>
+											))}
+											<WrapItem>
+												<ColorPickerWrapper
+													variant="tag"
+													handleCreateTag={handleCreateTag}
+												>
+													{/* <Button
+														size="xs"
+														variant="solid"
+														colorScheme="green"
+														aria-label="Add label"
+														rightIcon={<AddIcon />}
+													>
+														New label
+													</Button> */}
+													<Tag
+														cursor={'pointer'}
+														background={'gray.200'}
+														_hover={{ backgroundColor: 'gray.300' }}
+													>
+														<TagLabel>New tag</TagLabel>
+														<TagRightIcon as={AddIcon} />
+													</Tag>
+												</ColorPickerWrapper>
+											</WrapItem>
+										</Wrap>
+									</Box>
 									<Flex justifyContent={'space-between'} alignItems={'center'}>
 										<Icon as={FaAlignLeft} position="absolute" left="4" />
 										<Heading fontSize={'lg'} my="8px">
@@ -577,14 +676,21 @@ export function KanbanCardModal({
 									>
 										Member
 									</Button>
-									{/* <Button
-										justifyContent={'left'}
-										size="sm"
-										width={'160px'}
-										leftIcon={<AddIcon />}
+									<ColorPickerWrapper
+										variant="tag"
+										handleCreateTag={handleCreateTag}
+										handleDeleteTag={handleDeleteTag}
 									>
-										Labels
-									</Button> */}
+										<Button
+											justifyContent={'left'}
+											size="sm"
+											width={'160px'}
+											leftIcon={<AddIcon />}
+										>
+											Tag
+										</Button>
+									</ColorPickerWrapper>
+
 									<ColorPickerWrapper
 										handleUpdateBackgroundColor={handleUpdateBackgroundColor}
 										handleRemoveBackgroundColor={handleRemoveBackgroundColor}
@@ -637,7 +743,8 @@ export function KanbanCardModal({
 									uppy.cancelAll();
 									onCloseUppy();
 								}}
-								closeModalOnClickOutside={true}
+								// closeModalOnClickOutside={true}
+								closeAfterFinish={true}
 								note={'Maximum 4 MB'}
 							/>
 						</ModalBody>
