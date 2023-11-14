@@ -77,13 +77,17 @@ const getPublicURL = (path: string) => {
 	return `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/${STORAGE_BUCKET}/${path}`;
 };
 
-function AttachmentCard({ file, onDeleteFile, folder }: any) {
+function AttachmentCard({
+	file,
+	onDeleteFile,
+	handleSetAttachmentAsBackground,
+}: any) {
 	let imageSrc = file.mimetype?.includes('image')
-		? getPublicURL(folder + '/' + file.name)
+		? getPublicURL(file.path)
 		: '';
 	return (
 		<Link
-			href={getPublicURL(folder + '/' + file.name)}
+			href={getPublicURL(file.path)}
 			isExternal
 			_hover={{
 				textDecor: 'unset',
@@ -132,15 +136,18 @@ function AttachmentCard({ file, onDeleteFile, folder }: any) {
 							>
 								Delete
 							</Button>
-							<Button
-								variant={'link'}
-								onClick={(e) => {
-									e.stopPropagation();
-									e.preventDefault();
-								}}
-							>
-								Set as thumbnail
-							</Button>
+							{file.mimetype?.includes('image') && (
+								<Button
+									variant={'link'}
+									onClick={(e) => {
+										e.stopPropagation();
+										e.preventDefault();
+										handleSetAttachmentAsBackground(file.path);
+									}}
+								>
+									Set as thumbnail
+								</Button>
+							)}
 						</Stack>
 					</CardFooter>
 				</Stack>
@@ -194,7 +201,7 @@ export function KanbanCardModal({
 				prevFiles.filter((f: any) => f.name !== file.name),
 			);
 			try {
-				taskService.removeAttachment(
+				await taskService.removeAttachment(
 					task.id,
 					file.id,
 					session?.user.accessToken,
@@ -262,7 +269,9 @@ export function KanbanCardModal({
 						return next(err);
 					},
 				})
-				.use(Compressor)
+				.use(Compressor, {
+					quality: 0.4,
+				})
 				.use(ScreenCapture)
 				.use(ImageEditor),
 		[],
@@ -304,7 +313,8 @@ export function KanbanCardModal({
 						name: props.meta.name,
 						size: props.size,
 						mimetype: props.type,
-						path: folder ? `${folder}/${props.meta.name}` : props.meta.name,
+						// path: folder ? `${folder}/${props.meta.name}` : props.meta.name,
+						path: props.meta.objectName,
 					},
 					session?.user.accessToken,
 				);
@@ -336,10 +346,19 @@ export function KanbanCardModal({
 		});
 	};
 
+	const handleSetAttachmentAsBackground = async (path: string) => {
+		console.log('setting attachment as background', path);
+		await updateTask(task.id, {
+			...task,
+			backgroundColor: null,
+			backgroundAttachmentPath: path,
+		});
+	};
 	const handleUpdateBackgroundColor = async (color: string) => {
 		await updateTask(task.id, {
 			...task,
 			backgroundColor: color,
+			backgroundAttachmentPath: null,
 		});
 	};
 
@@ -347,6 +366,7 @@ export function KanbanCardModal({
 		await updateTask(task.id, {
 			...task,
 			backgroundColor: null,
+			backgroundAttachmentPath: null,
 		});
 	};
 
@@ -401,6 +421,24 @@ export function KanbanCardModal({
 								minH="100"
 								borderTopRadius={'8px'}
 							/>
+						)}
+						{task.backgroundAttachmentPath && (
+							<Box
+								objectFit={'cover'}
+								maxH="150"
+								minH="100"
+								borderTopRadius={'8px'}
+								background={'gray.100'}
+							>
+								<Image
+									objectFit="cover"
+									src={getPublicURL(task.backgroundAttachmentPath)}
+									alt={'background'}
+									maxH={'150px'}
+									w={'100%'}
+									borderTopRadius={'8px'}
+								/>
+							</Box>
 						)}
 						<ModalHeader>
 							<Box ml="4px">
@@ -659,6 +697,9 @@ export function KanbanCardModal({
 														folder={folder}
 														onDeleteFile={() => deleteFile(file)}
 														key={file.id}
+														handleSetAttachmentAsBackground={
+															handleSetAttachmentAsBackground
+														}
 													/>
 												);
 											})}

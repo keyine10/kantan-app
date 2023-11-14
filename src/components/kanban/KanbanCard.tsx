@@ -41,6 +41,10 @@ interface KanbanCardProps {
 	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
 	deleteTask: (id: string, listId: string) => void;
 }
+
+const getPublicURL = (path: string) => {
+	return `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/attachment/${path}`;
+};
 export default function KanbanCard({
 	task,
 	isDraggingList,
@@ -131,6 +135,23 @@ export default function KanbanCard({
 							roundedTop={'lg'}
 							opacity={isDragging ? 0 : 0.8}
 						/>
+					)}
+					{task.backgroundAttachmentPath && (
+						<Box
+							height={'100px'}
+							backgroundColor={'gray.100'}
+							roundedTop={'lg'}
+							opacity={isDragging ? 0 : 0.8}
+						>
+							<Image
+								objectFit="cover"
+								src={getPublicURL(task.backgroundAttachmentPath)}
+								alt={'background'}
+								maxH={'100%'}
+								width={'100%'}
+								borderTopRadius={'8px'}
+							/>
+						</Box>
 					)}
 				</CardHeader>
 				<CardBody px={2} py={1.5} opacity={isDragging ? 0 : 1}>

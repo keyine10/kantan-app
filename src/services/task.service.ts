@@ -38,6 +38,7 @@ function updateTask(data: any, token: string) {
 				description: data.description,
 				listId: data.listId,
 				backgroundColor: data.backgroundColor,
+				backgroundAttachmentPath: data.backgroundAttachmentPath,
 			},
 			{
 				headers: { Authorization: 'Bearer ' + token },

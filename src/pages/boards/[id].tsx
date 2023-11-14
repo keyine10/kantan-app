@@ -105,6 +105,7 @@ export default function KanbanPage({
 				isClosable: true,
 				position: 'bottom-left',
 			});
+			router.push('/');
 		});
 
 		socket.on(EVENTS.BOARD_UPDATED, (data) => {

@@ -90,7 +90,7 @@ export default function Home({ props }: any) {
 		}
 	};
 
-	if (isLoading)
+	if (isLoading || !boards)
 		return (
 			<Container
 				h="91vh"

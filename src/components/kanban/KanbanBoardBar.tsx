@@ -47,6 +47,7 @@ import { ConfirmModalWrapper } from '../common/ConfirmModalWrapper';
 import { ColorPickerWrapper } from '../common/ColorPickerWrapper';
 import { FaImage } from 'react-icons/fa6';
 import tinycolor from 'tinycolor2';
+import { useRouter } from 'next/router';
 
 interface Props {
 	children: React.ReactNode;
@@ -124,7 +125,7 @@ export default function KanbanBoardBar({
 	const toast = useToast();
 	const { isOpen, onOpen, onClose } = useDisclosure();
 	const btnRef = useRef(null);
-
+	const router = useRouter();
 	const handleUpdateBoardName = async (
 		event: ChangeEvent<HTMLInputElement>,
 	) => {
@@ -294,6 +295,7 @@ export default function KanbanBoardBar({
 				position: 'bottom-left',
 				variant: 'left-accent',
 			});
+			router.push('/');
 		} catch (e) {
 			toast({
 				status: 'error',
@@ -422,6 +424,7 @@ export default function KanbanBoardBar({
 											<ConfirmModalWrapper
 												label={'Board'}
 												onDelete={handleDeleteBoard}
+												width={'100%'}
 											>
 												{Number(board.creatorId) === Number(user.id) && (
 													<Button

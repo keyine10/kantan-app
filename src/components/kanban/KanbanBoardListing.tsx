@@ -28,6 +28,10 @@ import {
 	InputGroup,
 	InputLeftElement,
 	Center,
+	Grid,
+	GridItem,
+	SimpleGrid,
+	Tooltip,
 } from '@chakra-ui/react';
 import { AddIcon, DeleteIcon, Search2Icon } from '@chakra-ui/icons';
 import { KanbanBoardModel } from '../../types/kanban-board';
@@ -37,6 +41,7 @@ import NextLink from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import Fuse from 'fuse.js';
 import { useDebounce } from '@uidotdev/usehooks';
+import tinycolor from 'tinycolor2';
 
 export default function KanbanBoardListing({
 	boards = [],
@@ -64,7 +69,6 @@ export default function KanbanBoardListing({
 	const [searchResults, setSearchResults] = useState(boards);
 	const [searchTerm, setSearchTerm] = useState('');
 	const debouncedSearchTerm = useDebounce(searchTerm, 400);
-
 	const inputFocusRef = useRef(null);
 	const fuse = new Fuse(boards, {
 		keys: ['title', 'description'],
@@ -72,6 +76,7 @@ export default function KanbanBoardListing({
 		threshold: 0.1,
 		findAllMatches: true,
 	});
+
 	useEffect(() => {
 		if (debouncedSearchTerm.length === 0) {
 			setSearchResults(boards);
@@ -81,7 +86,7 @@ export default function KanbanBoardListing({
 		const foundBoards = results.map((result) => result.item);
 		setSearchResults(foundBoards);
 		// console.log('search results:', results);
-	}, [debouncedSearchTerm]);
+	}, [debouncedSearchTerm, boards]);
 	const formik = useFormik({
 		initialValues: {
 			title: '',
@@ -116,7 +121,7 @@ export default function KanbanBoardListing({
 			<Heading>Your boards</Heading>
 			<Box>
 				<Center>
-					<InputGroup width={'50%'}>
+					<InputGroup width={'50%'} minW={{ base: '272px', md: '554px' }}>
 						<InputLeftElement pointerEvents="none">
 							<Search2Icon color="gray.300" />
 						</InputLeftElement>
@@ -129,65 +134,96 @@ export default function KanbanBoardListing({
 				</Center>
 			</Box>
 
-			<Wrap>
+			<SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} m={'auto'} spacing={4}>
 				{searchResults.map((board: any) => (
-					<WrapItem key={board.id}>
-						<Box m={2}>
-							<Link
-								as={NextLink}
-								href={
-									isDeletingBoardId === board.id ? '/' : `/boards/${board.id}`
-								}
+					<Box key={board.id}>
+						<NextLink
+							href={
+								isDeletingBoardId === board.id ? '/' : `/boards/${board.id}`
+							}
+						>
+							<Tooltip
+								width={'fit-content'}
+								label={board.description}
+								aria-label="A tooltip"
+								my={'-2'}
 							>
 								<Flex
-									bgColor="gray.50"
-									height="100px"
+									bgColor={
+										board.backgroundColor ? board.backgroundColor : 'gray.50'
+									}
+									height="120px"
 									width="272px"
 									p={2}
 									borderRadius={8}
 									_hover={{
-										bgColor: 'gray.300',
+										bgColor: board.backgroundColor
+											? tinycolor(board.backgroundColor).lighten(10).toString()
+											: 'gray.100',
 									}}
 									border={'4px solid transparent'}
 									borderColor={
 										board.backgroundColor ? board.backgroundColor : 'black'
 									}
+									color={
+										board.backgroundColor
+											? tinycolor(board.backgroundColor).getLuminance() < 0.5
+												? 'white'
+												: 'black'
+											: 'black'
+									}
 									cursor={'pointer'}
 									userSelect={'none'}
 									transition={'all 0.2s ease'}
 									justifyContent={'space-between'}
+									role={'group'}
 								>
 									<Text textDecoration={'none'}>{board.title}</Text>
-									{Number(board.creatorId) === Number(user.id) && (
-										<IconButton
-											float={'right'}
-											aria-label="options"
-											size="md"
-											opacity={0.7}
-											_hover={{ opacity: 1, backgroundColor: 'gray.200' }}
-											variant="ghost"
-											colorScheme="gray"
-											icon={<DeleteIcon />}
-											zIndex={10}
-											isLoading={isDeletingBoardId === board.id}
-											onClick={async (e) => {
-												e.preventDefault();
-												e.stopPropagation();
-
-												try {
-													setisDeletingBoardId(board.id);
-													await deleteBoard(board.id);
-													setisDeletingBoardId('');
-												} catch (error) {
-													setisDeletingBoardId('');
+									<Box>
+										{Number(board.creatorId) === Number(user.id) && (
+											<IconButton
+												float={'right'}
+												aria-label="options"
+												size="sm"
+												opacity={0}
+												_groupHover={{ opacity: 0.8 }}
+												_hover={{ opacity: 1, transform: 'scale(1.2)' }}
+												variant="ghost"
+												colorScheme="gray"
+												icon={
+													<DeleteIcon
+														color={
+															board.backgroundColor
+																? tinycolor(
+																		board.backgroundColor,
+																  ).getLuminance() < 0.5
+																	? 'white'
+																	: 'black'
+																: 'black'
+														}
+													/>
 												}
-											}}
-										/>
-									)}
+												zIndex={10}
+												isLoading={isDeletingBoardId === board.id}
+												onClick={async (e) => {
+													e.preventDefault();
+													e.stopPropagation();
+
+													try {
+														setisDeletingBoardId(board.id);
+														await deleteBoard(board.id);
+														setisDeletingBoardId('');
+													} catch (error) {
+														setisDeletingBoardId('');
+													}
+												}}
+											/>
+										)}
+									</Box>
 								</Flex>
-							</Link>
-						</Box>
-					</WrapItem>
+							</Tooltip>
+						</NextLink>
+					</Box>
 				))}
 
 				<Popover
@@ -195,35 +231,37 @@ export default function KanbanBoardListing({
 					initialFocusRef={inputFocusRef}
 					onOpen={onOpen}
 					onClose={onClose}
-					placement="right"
+					placement={'bottom'}
 				>
-					<WrapItem>
-						<Box m={2}>
-							<Button
-								size="md"
-								height="100px"
-								width="272px"
-								leftIcon={<AddIcon />}
-								variant="solid"
-								onClick={() => {
-									if (boards.length >= 12) {
-										toast({
-											status: 'warning',
-											title: 'Maximum number of boards reached',
-											isClosable: true,
-											position: 'bottom-left',
-											variant: 'left-accent',
-											length: 3000,
-										});
-										return;
-									}
-									onOpen();
-								}}
-							>
-								Create a new board
-							</Button>
+					<Box>
+						<Box>
+							<PopoverTrigger>
+								<Button
+									size="md"
+									height="120px"
+									width="272px"
+									leftIcon={<AddIcon />}
+									variant="solid"
+									onClick={() => {
+										if (boards.length >= 12) {
+											toast({
+												status: 'warning',
+												title: 'Maximum number of boards reached',
+												isClosable: true,
+												position: 'bottom-left',
+												variant: 'left-accent',
+												length: 3000,
+											});
+											return;
+										}
+										onOpen();
+									}}
+								>
+									Create a new board
+								</Button>
+							</PopoverTrigger>
 						</Box>
-					</WrapItem>
+					</Box>
 					<PopoverContent p={5}>
 						<PopoverHeader>Create a new board</PopoverHeader>
 						<PopoverArrow />
@@ -280,7 +318,7 @@ export default function KanbanBoardListing({
 						</form>
 					</PopoverContent>
 				</Popover>
-			</Wrap>
+			</SimpleGrid>
 		</Stack>
 	);
 }

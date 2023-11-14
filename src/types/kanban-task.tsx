@@ -11,6 +11,8 @@ export interface KanbanTaskModel {
 
 	backgroundColor: string;
 
+	backgroundAttachmentPath: string;
+
 	attachments: any;
 
 	tags: any;
