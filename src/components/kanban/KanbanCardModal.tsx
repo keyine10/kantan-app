@@ -54,6 +54,7 @@ import Tus from '@uppy/tus';
 import ScreenCapture from '@uppy/screen-capture';
 
 import Compressor from '@uppy/compressor';
+
 import ImageEditor from '@uppy/image-editor';
 import { DashboardModal } from '@uppy/react';
 
@@ -81,6 +82,8 @@ function AttachmentCard({
 	file,
 	onDeleteFile,
 	handleSetAttachmentAsBackground,
+	isBackground,
+	handleRemoveBackgroundColor,
 }: any) {
 	let imageSrc = file.mimetype?.includes('image')
 		? getPublicURL(file.path)
@@ -136,7 +139,7 @@ function AttachmentCard({
 							>
 								Delete
 							</Button>
-							{file.mimetype?.includes('image') && (
+							{file.mimetype?.includes('image') && !isBackground && (
 								<Button
 									variant={'link'}
 									onClick={(e) => {
@@ -146,6 +149,19 @@ function AttachmentCard({
 									}}
 								>
 									Set as thumbnail
+								</Button>
+							)}
+
+							{isBackground && (
+								<Button
+									variant={'link'}
+									onClick={(e) => {
+										e.stopPropagation();
+										e.preventDefault();
+										handleRemoveBackgroundColor();
+									}}
+								>
+									Remove thumbnail
 								</Button>
 							)}
 						</Stack>
@@ -195,7 +211,7 @@ export function KanbanCardModal({
 	async function deleteFile(file: any) {
 		const { data, error } = await supabase.storage
 			.from(STORAGE_BUCKET)
-			.remove([`${folder}/${file.name}`]);
+			.remove([file.path]);
 		if (data) {
 			setFiles((prevFiles: any) =>
 				prevFiles.filter((f: any) => f.name !== file.name),
@@ -242,6 +258,7 @@ export function KanbanCardModal({
 					allowedFileTypes: null,
 				},
 			})
+
 				.use(Tus, {
 					endpoint: supabaseStorageURL,
 					headers: {
@@ -270,10 +287,11 @@ export function KanbanCardModal({
 					},
 				})
 				.use(Compressor, {
-					quality: 0.4,
-				})
-				.use(ScreenCapture)
-				.use(ImageEditor),
+					id: task.id,
+					quality: 0.8,
+					convertTypes: ['image/png', 'image/webp'],
+					convertSize: 2 * 1024 * 1024,
+				} as any),
 		[],
 	);
 	useEffect(() => {
@@ -700,6 +718,14 @@ export function KanbanCardModal({
 														handleSetAttachmentAsBackground={
 															handleSetAttachmentAsBackground
 														}
+														isBackground={
+															task.backgroundAttachmentPath === file.path
+																? true
+																: false
+														}
+														handleRemoveBackgroundColor={
+															handleRemoveBackgroundColor
+														}
 													/>
 												);
 											})}
@@ -740,6 +766,18 @@ export function KanbanCardModal({
 										</Button>
 									</ColorPickerWrapper>
 
+									<Button
+										justifyContent={'left'}
+										size="sm"
+										width={'160px'}
+										leftIcon={<DeleteIcon />}
+										onClick={() => {
+											handleRemoveBackgroundColor();
+										}}
+									>
+										Delete Background
+									</Button>
+
 									<ConfirmModalWrapper
 										label={'Task'}
 										onDelete={handleDeleteTask}
@@ -753,18 +791,6 @@ export function KanbanCardModal({
 											Delete Task
 										</Button>
 									</ConfirmModalWrapper>
-
-									<Button
-										justifyContent={'left'}
-										size="sm"
-										width={'160px'}
-										leftIcon={<DeleteIcon />}
-										onClick={() => {
-											handleRemoveBackgroundColor();
-										}}
-									>
-										Delete Background
-									</Button>
 								</VStack>
 							</Flex>
 
