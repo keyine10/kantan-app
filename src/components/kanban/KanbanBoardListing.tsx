@@ -25,13 +25,18 @@ import {
 	Skeleton,
 	Link,
 	Spinner,
+	InputGroup,
+	InputLeftElement,
+	Center,
 } from '@chakra-ui/react';
-import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
+import { AddIcon, DeleteIcon, Search2Icon } from '@chakra-ui/icons';
 import { KanbanBoardModel } from '../../types/kanban-board';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import NextLink from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Fuse from 'fuse.js';
+import { useDebounce } from '@uidotdev/usehooks';
 
 export default function KanbanBoardListing({
 	boards = [],
@@ -39,10 +44,10 @@ export default function KanbanBoardListing({
 	createBoard,
 	deleteBoard,
 	user,
+	toast,
 }: {
 	isLoading: boolean;
 	boards: KanbanBoardModel[];
-	mutate: () => void;
 	createBoard: ({
 		title,
 		description,
@@ -52,11 +57,31 @@ export default function KanbanBoardListing({
 	}) => void;
 	deleteBoard: (id: string) => void;
 	user: any;
+	toast: any;
 }) {
 	const { onOpen, onClose, isOpen } = useDisclosure();
 	const [isDeletingBoardId, setisDeletingBoardId] = useState('');
-	const inputFocusRef = useRef(null);
+	const [searchResults, setSearchResults] = useState(boards);
+	const [searchTerm, setSearchTerm] = useState('');
+	const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
+	const inputFocusRef = useRef(null);
+	const fuse = new Fuse(boards, {
+		keys: ['title', 'description'],
+		includeScore: true,
+		threshold: 0.1,
+		findAllMatches: true,
+	});
+	useEffect(() => {
+		if (debouncedSearchTerm.length === 0) {
+			setSearchResults(boards);
+			return;
+		}
+		const results = fuse.search(debouncedSearchTerm);
+		const foundBoards = results.map((result) => result.item);
+		setSearchResults(foundBoards);
+		// console.log('search results:', results);
+	}, [debouncedSearchTerm]);
 	const formik = useFormik({
 		initialValues: {
 			title: '',
@@ -67,6 +92,7 @@ export default function KanbanBoardListing({
 		}),
 		onSubmit: async (values) => {
 			console.log(values);
+
 			try {
 				await createBoard(values);
 				formik.resetForm();
@@ -88,9 +114,23 @@ export default function KanbanBoardListing({
 	return (
 		<Stack spacing={8} alignContent={'flex-start'}>
 			<Heading>Your boards</Heading>
+			<Box>
+				<Center>
+					<InputGroup width={'50%'}>
+						<InputLeftElement pointerEvents="none">
+							<Search2Icon color="gray.300" />
+						</InputLeftElement>
+						<Input
+							type="search"
+							placeholder="Search"
+							onChange={(e) => setSearchTerm(e.target.value)}
+						/>
+					</InputGroup>
+				</Center>
+			</Box>
 
 			<Wrap>
-				{boards.map((board: any) => (
+				{searchResults.map((board: any) => (
 					<WrapItem key={board.id}>
 						<Box m={2}>
 							<Link
@@ -157,21 +197,33 @@ export default function KanbanBoardListing({
 					onClose={onClose}
 					placement="right"
 				>
-					<PopoverTrigger>
-						<WrapItem>
-							<Box m={2}>
-								<Button
-									size="md"
-									height="100px"
-									width="272px"
-									leftIcon={<AddIcon />}
-									variant="solid"
-								>
-									Create a new board
-								</Button>
-							</Box>
-						</WrapItem>
-					</PopoverTrigger>
+					<WrapItem>
+						<Box m={2}>
+							<Button
+								size="md"
+								height="100px"
+								width="272px"
+								leftIcon={<AddIcon />}
+								variant="solid"
+								onClick={() => {
+									if (boards.length >= 12) {
+										toast({
+											status: 'warning',
+											title: 'Maximum number of boards reached',
+											isClosable: true,
+											position: 'bottom-left',
+											variant: 'left-accent',
+											length: 3000,
+										});
+										return;
+									}
+									onOpen();
+								}}
+							>
+								Create a new board
+							</Button>
+						</Box>
+					</WrapItem>
 					<PopoverContent p={5}>
 						<PopoverHeader>Create a new board</PopoverHeader>
 						<PopoverArrow />

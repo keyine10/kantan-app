@@ -668,14 +668,7 @@ export function KanbanCardModal({
 									<Heading as="h3" fontSize={'14'}>
 										Actions
 									</Heading>
-									<Button
-										justifyContent={'left'}
-										size="sm"
-										width={'160px'}
-										leftIcon={<AddIcon />}
-									>
-										Member
-									</Button>
+
 									<ColorPickerWrapper
 										variant="tag"
 										handleCreateTag={handleCreateTag}

@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
 						email: credentials?.email,
 						password: credentials?.password,
 					});
-					console.log('RESPONSE DATA:', response.data);
+					// console.log('RESPONSE DATA:', response.data);
 					let user = response.data;
 					if (!user) {
 						throw new Error('Unauthorized');

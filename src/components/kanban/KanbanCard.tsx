@@ -92,14 +92,7 @@ export default function KanbanCard({
 	};
 
 	return (
-		<Box
-			// opacity={isDragging ? 1 : 0}
-			ref={isDraggingList ? undefined : setNodeRef}
-			style={style}
-			{...attributes}
-			{...listeners}
-			_active={{ border: 'none' }}
-		>
+		<div role={'group'}>
 			<Card
 				as="div"
 				position="relative"
@@ -111,7 +104,6 @@ export default function KanbanCard({
 				// maxH={500}
 				zIndex={isDragging ? 100 : 10}
 				bgColor={isDragging ? 'gray.400' : 'white'}
-				role={'group'}
 				// border={'2px solid transparent'}
 				_hover={
 					isDragOverlay
@@ -125,6 +117,11 @@ export default function KanbanCard({
 				key={task.id}
 				onClick={onOpen}
 				variant={'elevated'}
+				cursor={'pointer'}
+				ref={isDraggingList ? undefined : setNodeRef}
+				style={style}
+				{...attributes}
+				{...listeners}
 			>
 				<CardHeader p={0}>
 					{task.backgroundColor && (
@@ -177,6 +174,7 @@ export default function KanbanCard({
 									setIsEditingTaskName(false);
 								}
 							}}
+							my="2"
 							autoFocus
 							bgColor="white"
 							minW={240}
@@ -285,6 +283,6 @@ export default function KanbanCard({
 					</HStack>
 				</CardFooter>
 			</Card>
-		</Box>
+		</div>
 	);
 }

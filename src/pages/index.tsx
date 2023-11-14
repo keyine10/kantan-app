@@ -6,6 +6,7 @@ import {
 	Divider,
 	Heading,
 	Spacer,
+	Spinner,
 	useToast,
 } from '@chakra-ui/react';
 import { getServerSession } from 'next-auth';
@@ -30,7 +31,7 @@ export default function Home({ props }: any) {
 		session?.user?.id,
 		session?.user?.accessToken,
 	);
-	console.log(user);
+	// console.log(user);
 	const {
 		data: boards,
 		error,
@@ -89,6 +90,24 @@ export default function Home({ props }: any) {
 		}
 	};
 
+	if (isLoading)
+		return (
+			<Container
+				h="91vh"
+				m="0 auto"
+				display={'flex'}
+				alignItems={'center'}
+				justifyContent={'center'}
+			>
+				<Spinner
+					size="xl"
+					thickness="4px"
+					speed="0.65s"
+					emptyColor="gray.200"
+					color="blue.500"
+				/>
+			</Container>
+		);
 	console.log(boards);
 	return (
 		<>
@@ -103,13 +122,14 @@ export default function Home({ props }: any) {
 
 				<Divider />
 				<Spacer margin={5} />
+
 				<KanbanBoardListing
 					boards={boards}
 					isLoading={isLoading}
-					mutate={mutate}
 					createBoard={createBoard}
 					deleteBoard={deleteBoard}
 					user={user}
+					toast={toast}
 				/>
 			</Container>
 		</>
