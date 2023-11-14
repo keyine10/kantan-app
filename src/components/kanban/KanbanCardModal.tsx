@@ -253,7 +253,7 @@ export function KanbanCardModal({
 				restrictions: {
 					maxFileSize: 4 * 1024 * 1024,
 					minFileSize: 1,
-					maxNumberOfFiles: 1,
+					maxNumberOfFiles: 5 - task.attachments.length,
 					minNumberOfFiles: 1,
 					allowedFileTypes: null,
 				},
@@ -693,10 +693,10 @@ export function KanbanCardModal({
 										<Button
 											size={'sm'}
 											onClick={() => {
-												if (task.attachments?.length < 4) onOpenUppy();
+												if (task.attachments?.length < 5) onOpenUppy();
 												else
 													toast({
-														title: 'Maximum 4 files',
+														title: 'Maximum 5 files',
 														status: 'info',
 														duration: 5000,
 														isClosable: true,
@@ -805,7 +805,9 @@ export function KanbanCardModal({
 								}}
 								// closeModalOnClickOutside={true}
 								closeAfterFinish={true}
-								note={'Maximum 4 MB'}
+								note={`Maximum ${
+									5 - task.attachments?.length
+								} files, 4 MB each`}
 							/>
 						</ModalBody>
 						<ModalFooter>
