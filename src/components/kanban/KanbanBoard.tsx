@@ -4,9 +4,11 @@ import { KanbanListModel } from '../../types/kanban-list';
 import {
 	DndContext,
 	DragOverlay,
+	MouseSensor,
 	PointerSensor,
 	TouchSensor,
 	closestCorners,
+	pointerWithin,
 	useSensor,
 	useSensors,
 } from '@dnd-kit/core';
@@ -43,14 +45,14 @@ export default function KanbanBoard({
 	const toast = useToast();
 	const dndId = useId();
 	const sensors = useSensors(
-		useSensor(PointerSensor, {
+		useSensor(MouseSensor, {
 			activationConstraint: {
-				distance: 5,
+				distance: 40,
 			},
 		}),
 		useSensor(TouchSensor, {
 			activationConstraint: {
-				distance: 5,
+				distance: 20,
 			},
 		}),
 	);
@@ -395,7 +397,6 @@ export default function KanbanBoard({
 		}
 		const activeType = active.data.current?.type;
 		const overType = over.data.current?.type;
-		//TODO: update position after moving
 		if (!activeType) return;
 
 		if (activeType === 'list') {
@@ -430,7 +431,11 @@ export default function KanbanBoard({
 			//
 			if (activeListIndex !== overListIndex) {
 				// Sorting items in different lists
-				// console.log('sorting items in different lists');
+				// console.log(
+				// 	'sorting items in different lists',
+				// 	activeListIndex,
+				// 	overListIndex,
+				// );
 				setIsMovingAcrossLists(true);
 				let newLists = [...lists];
 				let [removedTask] = newLists[activeListIndex].tasks.splice(
@@ -446,17 +451,18 @@ export default function KanbanBoard({
 					(board: KanbanBoardModel) => {
 						return { ...board, lists: newLists };
 					},
-					{ revalidate: false, rollbackOnError: true },
+					{ revalidate: false, rollbackOnError: true, populateCache: true },
 				);
 			}
 		}
 		//Dropping an item into a list
 		if (activeType === 'task' && overType === 'list') {
-			// if (isMovingAcrossLists) return;
-			// console.log('dropping item into a list');
+			if (activeTask?.listId === over.id) return;
 			setIsMovingAcrossLists(true);
 			let activeListIndex = findList(active.data.current.task.listId);
 			let overListIndex = lists.findIndex((list) => list.id === over.id);
+			// console.log('dropping item into a list', activeListIndex, overListIndex);
+
 			// If active or over list is not found, return
 			if (!lists[activeListIndex] || !lists[overListIndex]) {
 				return;
@@ -485,6 +491,7 @@ export default function KanbanBoard({
 				{
 					revalidate: false,
 					rollbackOnError: true,
+					populateCache: true,
 				},
 			);
 		}
@@ -736,7 +743,7 @@ export default function KanbanBoard({
 	return (
 		<Container maxW={'100%'} p={0}>
 			<DndContext
-				collisionDetection={closestCorners}
+				collisionDetection={pointerWithin}
 				onDragStart={handleDragStart}
 				onDragEnd={handleDragEnd}
 				onDragOver={handleDragOver}
@@ -751,7 +758,7 @@ export default function KanbanBoard({
 					p={0}
 				>
 					<HStack
-						spacing={8}
+						spacing={12}
 						alignItems={'start'}
 						overflowX={'auto'}
 						overflowY={'hidden'}

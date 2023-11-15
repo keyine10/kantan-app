@@ -99,7 +99,7 @@ export default function KanbanCard({
 		<Box
 			role={'group'}
 			__css={{
-				touchAction: 'manipulation',
+				touchAction: 'none',
 			}}
 		>
 			<Card

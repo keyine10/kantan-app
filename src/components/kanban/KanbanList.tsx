@@ -78,7 +78,7 @@ export default function KanbanList({
 			duration: 0,
 			easing: 'cubic-bezier(0,0,0,0)',
 		},
-		disabled: isDraggingTask && list.tasks.length > 0,
+		disabled: isDraggingTask,
 	});
 
 	const style = {
@@ -159,16 +159,20 @@ export default function KanbanList({
 			bgColor={isDragging ? 'gray.400' : 'gray.50'}
 			minWidth={'284px'}
 			maxWidth={'284px'}
-			ref={setNodeRef}
 			style={style}
 			zIndex={10}
-			__css={{
-				touchAction: 'manipulation',
-			}}
+			ref={setNodeRef}
+			{...attributes}
 		>
 			<Flex direction="row" px={2} py={1} opacity={isDragging ? 0 : 1}>
 				<div>
-					<Heading fontSize={'md'} {...attributes} {...listeners}>
+					<Heading
+						fontSize={'md'}
+						{...listeners}
+						__css={{
+							touchAction: 'none',
+						}}
+					>
 						{isEditingListName ? (
 							<AutoResizeTextarea
 								border={'none'}
