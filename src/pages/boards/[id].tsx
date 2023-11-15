@@ -173,7 +173,7 @@ export default function KanbanPage({
 					};
 				},
 				{
-					revalidate: true,
+					revalidate: false,
 					populateCache: true,
 				},
 			);
