@@ -245,7 +245,7 @@ export default function KanbanList({
 				direction={'column'}
 				spacing={1}
 				// p={2}
-				maxH={{ base: '69vh', xl: '71vh' }}
+				maxH={{ base: '60vh', sm: '64vh', md: '69vh' }}
 				position={'relative'}
 				opacity={isDragging ? 0 : 1}
 				overflowY={'auto'}

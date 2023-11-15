@@ -18,6 +18,7 @@ import {
 	DrawerFooter,
 	DrawerHeader,
 	DrawerOverlay,
+	Divider,
 	AvatarGroup,
 	Avatar,
 	AvatarBadge,
@@ -30,6 +31,9 @@ import {
 	PopoverHeader,
 	HStack,
 	VStack,
+	Center,
+	Icon,
+	Heading,
 } from '@chakra-ui/react';
 import {
 	HamburgerIcon,
@@ -37,6 +41,7 @@ import {
 	AddIcon,
 	DeleteIcon,
 } from '@chakra-ui/icons';
+import { FaAlignLeft, FaCircleUser, FaImage } from 'react-icons/fa6';
 
 import { ChangeEvent, useRef, useState } from 'react';
 import { KanbanBoardModel } from '../../types/kanban-board';
@@ -45,9 +50,9 @@ import { UpdateBoardMembersModalButton } from '../common/UpdateBoardMembersModal
 import { User } from '../../types/user';
 import { ConfirmModalWrapper } from '../common/ConfirmModalWrapper';
 import { ColorPickerWrapper } from '../common/ColorPickerWrapper';
-import { FaImage } from 'react-icons/fa6';
 import tinycolor from 'tinycolor2';
 import { useRouter } from 'next/router';
+import { AutoResizeTextarea } from '../common/AutoResizeTextArea';
 
 interface Props {
 	children: React.ReactNode;
@@ -121,11 +126,24 @@ export default function KanbanBoardBar({
 	activeMembers: User[];
 }) {
 	const [isEditingBoardName, setIsEditingBoardName] = useState(false);
-	const textareaRef = useRef(null);
+	const [isEditingBoardDescription, setIsEditingBoardDescription] =
+		useState(false);
+
+	const boardDescriptionRef = useRef<HTMLTextAreaElement>(null);
 	const toast = useToast();
-	const { isOpen, onOpen, onClose } = useDisclosure();
+	const {
+		isOpen: isOpenDrawer,
+		onOpen: onOpenDrawer,
+		onClose,
+	} = useDisclosure();
+	const onCloseDrawer = () => {
+		setIsEditingBoardDescription(false);
+		onClose();
+	};
+
 	const btnRef = useRef(null);
 	const router = useRouter();
+
 	const handleUpdateBoardName = async (
 		event: ChangeEvent<HTMLInputElement>,
 	) => {
@@ -161,6 +179,46 @@ export default function KanbanBoardBar({
 				status: 'error',
 				title: 'Error',
 				description: 'Cannot rename board',
+				isClosable: true,
+				position: 'bottom-left',
+				duration: 5000,
+			});
+		}
+		return;
+	};
+	const handleUpdateBoardDescription = async (description: string) => {
+		setIsEditingBoardDescription(false);
+
+		try {
+			await mutate(
+				async (board: KanbanBoardModel) => {
+					let updatedBoard = await boardService.updateBoard(
+						{
+							description: description,
+							id: board.id,
+						},
+						user.accessToken,
+					);
+					return {
+						...board,
+						description: updatedBoard.description,
+					};
+				},
+				{
+					optimisticData: {
+						...board,
+						description: description,
+					},
+					rollbackOnError: true,
+					populateCache: true,
+					revalidate: false,
+				},
+			);
+		} catch (e) {
+			toast({
+				status: 'error',
+				title: 'Error',
+				description: 'Cannot update board description',
 				isClosable: true,
 				position: 'bottom-left',
 				duration: 5000,
@@ -379,31 +437,133 @@ export default function KanbanBoardBar({
 								ref={btnRef}
 								size={'sm'}
 								colorScheme="teal"
-								onClick={onOpen}
+								onClick={onOpenDrawer}
 								aria-label="board options"
 								icon={<HamburgerIcon />}
 							/>
 							<Drawer
-								isOpen={isOpen}
+								isOpen={isOpenDrawer}
 								placement="right"
-								onClose={onClose}
+								onClose={onCloseDrawer}
 								finalFocusRef={btnRef}
 							>
 								<DrawerOverlay />
 								<DrawerContent>
 									<DrawerCloseButton />
-									<DrawerHeader>Menu</DrawerHeader>
+
+									<DrawerHeader>
+										<Center>Menu</Center>
+									</DrawerHeader>
 
 									<DrawerBody px="1rem">
 										<VStack alignItems={'left'}>
-											<Button
-												justifyContent={'left'}
-												leftIcon={<AddIcon />}
-												variant={'ghost'}
-											>
-												About
-											</Button>
+											<Box>
+												<Flex alignItems={'center'}>
+													<Icon as={FaCircleUser} mr={2} />
+													<Heading fontSize={'lg'} my="8px">
+														Creator
+													</Heading>
+												</Flex>
+												<HStack m="3" spacing={4}>
+													<Avatar
+														size={'md'}
+														name={board.creator.name}
+														src=""
+													></Avatar>
+													<Flex direction={'column'}>
+														<Text>{board.creator.name}</Text>
+														<Text fontSize={'sm'} color={'gray.500'}>
+															{board.creator.email}
+														</Text>
+													</Flex>
+												</HStack>
+											</Box>
+											<Box>
+												<Flex alignItems={'center'}>
+													<Icon as={FaAlignLeft} mr={2} />
+													<Heading fontSize={'lg'} my="8px">
+														Board Description
+													</Heading>
+												</Flex>
+												{isEditingBoardDescription ? (
+													<Box>
+														<AutoResizeTextarea
+															ref={boardDescriptionRef}
+															overflow={'hidden'}
+															defaultValue={board.description}
+															minH="100px"
+															maxLength={255}
+															maxWidth={'100%'}
+															// focusBorderColor="none"
+															onFocus={(event: any) => {
+																event.target.selectionEnd =
+																	event.target.value.length;
+															}}
+															onKeyDown={(event: any) => {
+																if (event.key === 'Escape') {
+																	setIsEditingBoardDescription(false);
+																}
+															}}
+															autoFocus
+															bgColor="white"
+														/>
+														<HStack my="8px">
+															<Button
+																variant="solid"
+																colorScheme="blue"
+																size={'sm'}
+																onClick={() => {
+																	setIsEditingBoardDescription(false);
+																	if (boardDescriptionRef.current?.value)
+																		handleUpdateBoardDescription(
+																			boardDescriptionRef.current?.value,
+																		);
+																}}
+															>
+																Save
+															</Button>
+															<Button
+																variant="ghost"
+																size={'sm'}
+																onClick={() => {
+																	setIsEditingBoardDescription(false);
+																}}
+															>
+																Cancel
+															</Button>
+														</HStack>
+													</Box>
+												) : (
+													<>
+														<Button
+															width={'100%'}
+															height={'100%'}
+															minH="148px"
+															p="4"
+															onClick={() => {
+																setIsEditingBoardDescription(true);
+															}}
+															justifyContent={'left'}
+															alignItems={'baseline'}
+															alignContent={'left'}
+														>
+															<Text
+																border={'none'}
+																cursor={'pointer'}
+																maxW={'100%'}
+																whiteSpace={'normal'}
+																textAlign={'left'}
+															>
+																{board.description
+																	? board.description
+																	: 'Add new description...'}
+															</Text>
+														</Button>
+													</>
+												)}
+											</Box>
 
+											<Divider />
 											<ColorPickerWrapper
 												handleUpdateBackgroundColor={
 													handleUpdateBackgroundColor
@@ -416,8 +576,9 @@ export default function KanbanBoardBar({
 													justifyContent={'left'}
 													leftIcon={<FaImage />}
 													variant={'ghost'}
+													w={'100%'}
 												>
-													Background
+													Change background color
 												</Button>
 											</ColorPickerWrapper>
 
@@ -431,6 +592,7 @@ export default function KanbanBoardBar({
 														justifyContent={'left'}
 														leftIcon={<DeleteIcon />}
 														variant={'ghost'}
+														colorScheme="red"
 														width={'100%'}
 													>
 														Delete Board

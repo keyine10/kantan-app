@@ -88,87 +88,108 @@ function AttachmentCard({
 	let imageSrc = file.mimetype?.includes('image')
 		? getPublicURL(file.path)
 		: '';
+
 	return (
-		<Link
-			href={getPublicURL(file.path)}
-			isExternal
-			_hover={{
-				textDecor: 'unset',
-			}}
+		<Card
+			direction="row"
+			overflow="hidden"
+			variant="outline"
+			size="sm"
+			backgroundColor={'gray.50'}
+			border="none"
+			_hover={{ backgroundColor: 'gray.200' }}
+			my="1rem"
 		>
-			<Card
-				direction="row"
-				overflow="hidden"
-				variant="outline"
-				size="sm"
-				backgroundColor={'gray.50'}
-				border="none"
-				_hover={{ backgroundColor: 'gray.200' }}
-				my="1rem"
+			<Link
+				href={getPublicURL(file.path)}
+				isExternal
+				_hover={{
+					textDecor: 'unset',
+				}}
 			>
-				{imageSrc ? (
-					<Image
-						objectFit="cover"
-						src={imageSrc}
-						alt={file.name}
-						width={'120px'}
-						maxH={'100px'}
-					/>
-				) : (
-					<Icon
-						as={FaFile}
-						width={'120px'}
-						h={'100px'}
-						opacity={0.5}
-						bgColor={'gray.100'}
-					/>
-				)}
-				<Stack>
+				<Box h={'100%'}>
+					{imageSrc ? (
+						<Image
+							objectFit="cover"
+							src={imageSrc}
+							alt={file.name}
+							h={'100%'}
+							width={'120px'}
+							maxH={'100px'}
+						/>
+					) : (
+						<Icon
+							as={FaFile}
+							width={'120px'}
+							h={'100px'}
+							opacity={0.5}
+							bgColor={'gray.100'}
+						/>
+					)}
+				</Box>
+			</Link>
+			<Stack>
+				<Link
+					href={getPublicURL(file.path)}
+					isExternal
+					_hover={{
+						textDecor: 'unset',
+					}}
+				>
 					<CardBody>
 						<Heading size="sm">{file.name}</Heading>
 					</CardBody>
-					<CardFooter>
-						<Stack direction={'row'}>
+				</Link>
+				<CardFooter>
+					<Stack direction={'row'}>
+						<Button
+							variant={'link'}
+							onClick={(e) => {
+								e.stopPropagation();
+								e.preventDefault();
+								onDeleteFile();
+							}}
+						>
+							Delete
+						</Button>
+						{file.mimetype?.includes('image') && !isBackground && (
 							<Button
 								variant={'link'}
 								onClick={(e) => {
 									e.stopPropagation();
 									e.preventDefault();
-									onDeleteFile();
+									handleSetAttachmentAsBackground(file.path);
 								}}
 							>
-								Delete
+								Set as thumbnail
 							</Button>
-							{file.mimetype?.includes('image') && !isBackground && (
-								<Button
-									variant={'link'}
-									onClick={(e) => {
-										e.stopPropagation();
-										e.preventDefault();
-										handleSetAttachmentAsBackground(file.path);
-									}}
-								>
-									Set as thumbnail
-								</Button>
-							)}
+						)}
 
-							{isBackground && (
-								<Button
-									variant={'link'}
-									onClick={(e) => {
-										e.stopPropagation();
-										e.preventDefault();
-										handleRemoveBackgroundColor();
-									}}
-								>
-									Remove thumbnail
-								</Button>
-							)}
-						</Stack>
-					</CardFooter>
-				</Stack>
-			</Card>
-		</Link>
+						{isBackground && (
+							<Button
+								variant={'link'}
+								onClick={(e) => {
+									e.stopPropagation();
+									e.preventDefault();
+									handleRemoveBackgroundColor();
+								}}
+							>
+								Remove thumbnail
+							</Button>
+						)}
+
+						<Button variant={'link'}>
+							<Link
+								href={getPublicURL(file.path) + '?download='}
+								download={'true'}
+							>
+								Download
+							</Link>
+						</Button>
+					</Stack>
+				</CardFooter>
+			</Stack>
+		</Card>
 	);
 }
 
@@ -253,7 +274,7 @@ export function KanbanCardModal({
 				restrictions: {
 					maxFileSize: 4 * 1024 * 1024,
 					minFileSize: 1,
-					maxNumberOfFiles: 5 - task.attachments.length,
+					maxNumberOfFiles: 5 - task?.attachments?.length,
 					minNumberOfFiles: 1,
 					allowedFileTypes: null,
 				},
@@ -272,7 +293,7 @@ export function KanbanCardModal({
 						'cacheControl',
 					],
 					onShouldRetry(err: any, retryAttempt, options, next) {
-						console.log('onshouldretry', err?.originalResponse.getStatus());
+						console.log('onshouldretry', err?.originalResponse?.getStatus());
 						if (err?.originalResponse?.getStatus() === 409) {
 							toast({
 								title: 'Error',
@@ -288,9 +309,9 @@ export function KanbanCardModal({
 				})
 				.use(Compressor, {
 					id: task.id,
-					quality: 0.8,
+					quality: 0.9,
 					convertTypes: ['image/png', 'image/webp'],
-					convertSize: 2 * 1024 * 1024,
+					convertSize: 1 * 1024 * 1024,
 				} as any),
 		[],
 	);
@@ -805,9 +826,10 @@ export function KanbanCardModal({
 								}}
 								// closeModalOnClickOutside={true}
 								closeAfterFinish={true}
-								note={`Maximum ${
-									5 - task.attachments?.length
-								} files, 4 MB each`}
+								note={
+									`Maximum ${5 - task.attachments?.length} files, 4 MB each. ` +
+									`Images will be converted to JPG`
+								}
 							/>
 						</ModalBody>
 						<ModalFooter>

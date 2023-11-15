@@ -19,6 +19,8 @@ export interface KanbanBoardModel {
 
 	creatorId: number;
 
+	creator: User;
+
 	members: User[];
 
 	pendingMembers: string[];

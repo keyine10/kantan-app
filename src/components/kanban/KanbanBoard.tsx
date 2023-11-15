@@ -730,7 +730,7 @@ export default function KanbanBoard({
 		return;
 	};
 	return (
-		<div>
+		<Container maxW={'100%'} h={'100%'} p={0}>
 			<DndContext
 				collisionDetection={closestCorners}
 				onDragStart={handleDragStart}
@@ -740,28 +740,18 @@ export default function KanbanBoard({
 				sensors={sensors}
 				id={dndId}
 			>
-				<Container
-					maxW={'100%'}
-					h={{
-						base: '88vh',
-						sm: '88.5vh',
-						md: '88.5vh',
-						lg: '88.5vh',
-						xl: '88.5vh',
-					}}
-					// bgColor={'blue.100'}
-					p={0}
-				>
+				<Container maxW={'100%'} h="100%" bgColor={'blue.100'} p={0}>
 					<HStack
-						h="100%"
 						spacing={8}
 						alignItems={'start'}
 						overflowX={'auto'}
 						overflowY={'hidden'}
+						h={{ base: '88%', md: '88%' }}
 						// pt={4}
 						// pl={4}
 						// pr={{ base: 0, xl: 4 }}
 						p={4}
+						pb={5}
 						pr={{ base: 6 }}
 						css={{
 							scrollbarColor: 'auto',
@@ -863,6 +853,6 @@ export default function KanbanBoard({
 						document.body,
 					)}
 			</DndContext>
-		</div>
+		</Container>
 	);
 }

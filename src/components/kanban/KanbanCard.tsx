@@ -138,7 +138,8 @@ export default function KanbanCard({
 					)}
 					{task.backgroundAttachmentPath && (
 						<Box
-							height={'100px'}
+							h={'80px'}
+							maxH={'80px'}
 							backgroundColor={'gray.100'}
 							roundedTop={'lg'}
 							opacity={isDragging ? 0 : 0.8}
@@ -147,7 +148,8 @@ export default function KanbanCard({
 								objectFit="cover"
 								src={getPublicURL(task.backgroundAttachmentPath)}
 								alt={'background'}
-								maxH={'100%'}
+								maxH={'80px'}
+								h={'80px'}
 								width={'100%'}
 								borderTopRadius={'8px'}
 							/>
@@ -174,7 +176,6 @@ export default function KanbanCard({
 							</WrapItem>
 						))}
 					</Wrap>
-
 					{isEditingTaskName ? (
 						<AutoResizeTextarea
 							border={'none'}
@@ -213,67 +214,73 @@ export default function KanbanCard({
 							{task.name}
 						</Text>
 					)}
-					<Box>
-						<Menu isLazy>
-							{({ isOpen }) => (
-								<>
-									<MenuButton
-										disabled={isDragging || isEditingTaskName || isDragOverlay}
-										isActive={isOpen}
-										opacity={isOpen ? 0.8 : 0}
-										role={'link'}
-										_groupHover={{ opacity: 0.8 }}
-										as={IconButton}
-										aria-label="Options"
-										icon={<HamburgerIcon />}
-										variant="ghost"
-										position={'absolute'}
-										top={1}
-										right={1}
-										zIndex={100}
-										size="sm"
-										// opacity={1}
-										background={'white'}
-										_hover={{ opacity: 1, backgroundColor: 'gray.100' }}
-										borderRadius={'100'}
-										colorScheme="gray"
-										onClick={(event) => {
-											event.stopPropagation();
-										}}
-									/>
-									<Portal appendToParentPortal={false}>
-										<MenuList zIndex={1000} minWidth={10} px={2}>
-											<MenuItem icon={<EditIcon />} onClick={onOpen}>
-												Open Task...
-											</MenuItem>
-											<MenuItem
-												onClick={handleOnClickEditTask}
-												icon={<EditIcon />}
-											>
-												Edit Task Name
-											</MenuItem>
+					{!isDragOverlay && (
+						<Box>
+							<Menu isLazy>
+								{({ isOpen }) => (
+									<>
+										<MenuButton
+											disabled={
+												isDragging || isEditingTaskName || isDragOverlay
+											}
+											isActive={isOpen}
+											opacity={isOpen ? 0.8 : 0}
+											role={'link'}
+											_groupHover={{ opacity: 0.8 }}
+											as={IconButton}
+											aria-label="Options"
+											icon={<HamburgerIcon />}
+											variant="ghost"
+											position={'absolute'}
+											top={1}
+											right={1}
+											zIndex={100}
+											size="sm"
+											// opacity={1}
+											background={'white'}
+											_hover={{ opacity: 1, backgroundColor: 'gray.100' }}
+											borderRadius={'100'}
+											colorScheme="gray"
+											onClick={(event) => {
+												event.stopPropagation();
+											}}
+										/>
+										<Portal appendToParentPortal={false}>
+											<MenuList zIndex={1000} minWidth={10} px={2}>
+												<MenuItem icon={<EditIcon />} onClick={onOpen}>
+													Open Task...
+												</MenuItem>
+												<MenuItem
+													onClick={handleOnClickEditTask}
+													icon={<EditIcon />}
+												>
+													Edit Task Name
+												</MenuItem>
 
-											<MenuItem
-												icon={<DeleteIcon />}
-												onClick={handleDeleteTask}
-											>
-												Delete Task
-											</MenuItem>
-										</MenuList>
-									</Portal>
-								</>
+												<MenuItem
+													icon={<DeleteIcon />}
+													onClick={handleDeleteTask}
+												>
+													Delete Task
+												</MenuItem>
+											</MenuList>
+										</Portal>
+									</>
+								)}
+							</Menu>
+							{task && (
+								<KanbanCardModal
+									isOpen={isOpen}
+									onClose={onClose}
+									task={task}
+									updateTask={updateTask}
+									handleDeleteTask={handleDeleteTask}
+								/>
 							)}
-						</Menu>
-						<KanbanCardModal
-							isOpen={isOpen}
-							onClose={onClose}
-							task={task}
-							updateTask={updateTask}
-							handleDeleteTask={handleDeleteTask}
-						/>
-					</Box>
+						</Box>
+					)}
 				</CardBody>
-				<CardFooter p={0}>
+				<CardFooter p={0} opacity={isDragging ? 0 : 1}>
 					<HStack spacing={2}>
 						{task?.description && (
 							<Box ml={3} my={2}>

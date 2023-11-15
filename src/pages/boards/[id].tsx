@@ -8,6 +8,7 @@ import { axiosHelper } from '../../services/fetcher';
 import {
 	Box,
 	Container,
+	Flex,
 	Spinner,
 	ToastId,
 	list,
@@ -345,21 +346,25 @@ export default function KanbanPage({
 			</Container>
 		);
 	return (
-		<LayoutWithNavBar
-			bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
-		>
-			<Box
+		<Flex height={'100vh'} overflowY={'hidden'} overflowX={'auto'}>
+			<LayoutWithNavBar
 				bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
 			>
-				<KanbanBoardBar
-					board={board}
-					mutate={mutate}
-					user={user}
-					activeMembers={activeMembers}
-				/>
-				<KanbanBoard board={board} mutate={mutate} user={user} />
-			</Box>
-		</LayoutWithNavBar>
+				<Box
+					bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
+					height={'100%'}
+					w="100vw"
+				>
+					<KanbanBoardBar
+						board={board}
+						mutate={mutate}
+						user={user}
+						activeMembers={activeMembers}
+					/>
+					<KanbanBoard board={board} mutate={mutate} user={user} />
+				</Box>
+			</LayoutWithNavBar>
+		</Flex>
 	);
 }
 
