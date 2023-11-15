@@ -5,9 +5,8 @@ import {
 	DndContext,
 	DragOverlay,
 	PointerSensor,
-	closestCenter,
+	TouchSensor,
 	closestCorners,
-	pointerWithin,
 	useSensor,
 	useSensors,
 } from '@dnd-kit/core';
@@ -46,7 +45,12 @@ export default function KanbanBoard({
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
-				distance: 10,
+				distance: 5,
+			},
+		}),
+		useSensor(TouchSensor, {
+			activationConstraint: {
+				distance: 5,
 			},
 		}),
 	);
@@ -730,7 +734,7 @@ export default function KanbanBoard({
 		return;
 	};
 	return (
-		<Container maxW={'100%'} h={'100%'} p={0}>
+		<Container maxW={'100%'} p={0}>
 			<DndContext
 				collisionDetection={closestCorners}
 				onDragStart={handleDragStart}
@@ -740,13 +744,18 @@ export default function KanbanBoard({
 				sensors={sensors}
 				id={dndId}
 			>
-				<Container maxW={'100%'} h="100%" bgColor={'blue.100'} p={0}>
+				<Container
+					maxW={'100%'}
+					h="100%"
+					bgColor={board.backgroundColor ? board.backgroundColor : 'blue.100'}
+					p={0}
+				>
 					<HStack
 						spacing={8}
 						alignItems={'start'}
 						overflowX={'auto'}
 						overflowY={'hidden'}
-						h={{ base: '88%', md: '88%' }}
+						h={{ base: '88vh', md: '88.4vh', lg: '88.5vh' }}
 						// pt={4}
 						// pl={4}
 						// pr={{ base: 0, xl: 4 }}

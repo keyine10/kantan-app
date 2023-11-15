@@ -162,6 +162,9 @@ export default function KanbanList({
 			ref={setNodeRef}
 			style={style}
 			zIndex={10}
+			__css={{
+				touchAction: 'manipulation',
+			}}
 		>
 			<Flex direction="row" px={2} py={1} opacity={isDragging ? 0 : 1}>
 				<div>

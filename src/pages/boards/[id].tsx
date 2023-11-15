@@ -346,25 +346,23 @@ export default function KanbanPage({
 			</Container>
 		);
 	return (
-		<Flex height={'100vh'} overflowY={'hidden'} overflowX={'auto'}>
-			<LayoutWithNavBar
+		<LayoutWithNavBar
+			bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
+		>
+			<Box
 				bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
+				height={'100%'}
+				w="100vw"
 			>
-				<Box
-					bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
-					height={'100%'}
-					w="100vw"
-				>
-					<KanbanBoardBar
-						board={board}
-						mutate={mutate}
-						user={user}
-						activeMembers={activeMembers}
-					/>
-					<KanbanBoard board={board} mutate={mutate} user={user} />
-				</Box>
-			</LayoutWithNavBar>
-		</Flex>
+				<KanbanBoardBar
+					board={board}
+					mutate={mutate}
+					user={user}
+					activeMembers={activeMembers}
+				/>
+				<KanbanBoard board={board} mutate={mutate} user={user} />
+			</Box>
+		</LayoutWithNavBar>
 	);
 }
 

@@ -96,7 +96,12 @@ export default function KanbanCard({
 	};
 
 	return (
-		<div role={'group'}>
+		<Box
+			role={'group'}
+			__css={{
+				touchAction: 'manipulation',
+			}}
+		>
 			<Card
 				as="div"
 				position="relative"
@@ -120,12 +125,12 @@ export default function KanbanCard({
 				}
 				key={task.id}
 				onClick={onOpen}
-				variant={'elevated'}
 				cursor={'pointer'}
 				ref={isDraggingList ? undefined : setNodeRef}
 				style={style}
 				{...attributes}
 				{...listeners}
+				variant={'elevated'}
 			>
 				<CardHeader p={0}>
 					{task.backgroundColor && (
@@ -311,6 +316,6 @@ export default function KanbanCard({
 					</HStack>
 				</CardFooter>
 			</Card>
-		</div>
+		</Box>
 	);
 }
