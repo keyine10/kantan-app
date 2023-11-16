@@ -178,7 +178,14 @@ export default function KanbanBoardListing({
 									justifyContent={'space-between'}
 									role={'group'}
 								>
-									<Text textDecoration={'none'}>{board.title}</Text>
+									<Text
+										whiteSpace={'normal'}
+										textAlign={'left'}
+										textDecoration={'none'}
+										width={'80%'}
+									>
+										{board.title}
+									</Text>
 									<Box>
 										{Number(board.creatorId) === Number(user.id) && (
 											<IconButton

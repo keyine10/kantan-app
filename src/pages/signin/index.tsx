@@ -98,6 +98,20 @@ export default function SignIn() {
 								bg={{ base: 'transparent', sm: 'bg.surface' }}
 							>
 								<Stack spacing="6">
+									<Alert status="info">
+										<AlertIcon />
+										<AlertTitle>Test Account 1:</AlertTitle>
+										<AlertDescription>
+											user1@gmail.com:user1password
+										</AlertDescription>
+									</Alert>
+									<Alert status="info">
+										<AlertIcon />
+										<AlertTitle>Test Account 2:</AlertTitle>
+										<AlertDescription>
+											user2@gmail.com:user2password
+										</AlertDescription>
+									</Alert>
 									<form onSubmit={formik.handleSubmit}>
 										<FormControl>
 											<Stack spacing="6">
