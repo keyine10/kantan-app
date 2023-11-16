@@ -1,8 +1,6 @@
-import '@/styles/globals.css';
 import type { AppProps } from 'next/app';
 import { ChakraProvider } from '@chakra-ui/react';
 import { SessionProvider } from 'next-auth/react';
-import WithNavBar from '../components/layout/LayoutWithNavBar';
 import { ReactElement, ReactNode } from 'react';
 import { NextPage } from 'next';
 
