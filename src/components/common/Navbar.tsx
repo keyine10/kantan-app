@@ -106,7 +106,7 @@ export default function Navbar({ bgColor }: any) {
 									<Text align={'center'}>Hello, {user?.name}</Text>
 									<MenuDivider />
 
-									<MenuItem>Edit Profile</MenuItem>
+									{/* <MenuItem>Edit Profile</MenuItem> */}
 									<MenuDivider />
 									<MenuItem onClick={handleSignOut}>Sign Out</MenuItem>
 								</MenuList>
