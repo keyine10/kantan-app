@@ -49,8 +49,6 @@
 		"react-dom": "18.2.0",
 		"react-icons": "^4.11.0",
 		"react-textarea-autosize": "^8.5.3",
-		"slate": "^0.100.0",
-		"slate-react": "^0.100.1",
 		"socket.io-client": "^4.7.2",
 		"swr": "^2.2.4",
 		"tinycolor2": "^1.6.0",

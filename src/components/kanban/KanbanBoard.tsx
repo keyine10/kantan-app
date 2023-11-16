@@ -9,6 +9,7 @@ import {
 	TouchSensor,
 	closestCorners,
 	pointerWithin,
+	rectIntersection,
 	useSensor,
 	useSensors,
 } from '@dnd-kit/core';
@@ -740,10 +741,11 @@ export default function KanbanBoard({
 		setIsMovingAcrossLists(false);
 		return;
 	};
+
 	return (
 		<Container maxW={'100%'} p={0}>
 			<DndContext
-				collisionDetection={pointerWithin}
+				collisionDetection={rectIntersection}
 				onDragStart={handleDragStart}
 				onDragEnd={handleDragEnd}
 				onDragOver={handleDragOver}

@@ -20,8 +20,8 @@ import { authOptions } from '../api/auth/[...nextauth]';
 import { KanbanListModel } from '../../types/kanban-list';
 import { KanbanBoardModel } from '../../types/kanban-board';
 import { getSocket } from '../../services/socket';
-import { taskService } from '../../services/task.service';
 import KanbanBoardBar from '@/components/kanban/KanbanBoardBar';
+import Head from 'next/head';
 
 export default function KanbanPage({
 	user,
@@ -349,6 +349,12 @@ export default function KanbanPage({
 		<LayoutWithNavBar
 			bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
 		>
+			<Head>
+				<title>{board?.title}</title>
+				<meta name="description" content="Kantan Board Page" />
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
+				<link rel="icon" href="/favicon.ico" />
+			</Head>
 			<Box
 				bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
 				height={'100%'}
