@@ -734,7 +734,7 @@ export default function KanbanBoard({
 				}
 			}
 			if (activeListIndex !== overListIndex) {
-				// console.log('sorting items from different list in dragend');
+				console.log('sorting items from different list in dragend');
 			}
 		}
 
@@ -742,10 +742,19 @@ export default function KanbanBoard({
 		return;
 	};
 
+	function customCollisionDetection(args: any) {
+		const pointerCollisions = pointerWithin(args);
+		console.log(pointerCollisions);
+		if (pointerCollisions.length > 0) {
+			return pointerCollisions;
+		}
+
+		return rectIntersection(args);
+	}
 	return (
 		<Container maxW={'100%'} p={0}>
 			<DndContext
-				collisionDetection={rectIntersection}
+				collisionDetection={customCollisionDetection}
 				onDragStart={handleDragStart}
 				onDragEnd={handleDragEnd}
 				onDragOver={handleDragOver}

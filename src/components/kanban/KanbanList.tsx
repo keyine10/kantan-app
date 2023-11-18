@@ -161,7 +161,7 @@ export default function KanbanList({
 			maxWidth={'284px'}
 			style={style}
 			zIndex={10}
-			ref={setNodeRef}
+			ref={isDraggingTask && list.tasks.length > 0 ? undefined : setNodeRef}
 			{...attributes}
 		>
 			<Flex direction="row" px={2} py={1} opacity={isDragging ? 0 : 1}>
