@@ -744,11 +744,12 @@ export default function KanbanBoard({
 
 	function customCollisionDetection(args: any) {
 		const pointerCollisions = pointerWithin(args);
+		console.log('pointerCollisions', pointerCollisions);
 		if (pointerCollisions.length > 0) {
 			return pointerCollisions;
 		}
 
-		return rectIntersection(args);
+		return closestCorners(args);
 	}
 	return (
 		<Container maxW={'100%'} p={0}>
