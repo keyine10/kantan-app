@@ -68,7 +68,7 @@ export default function KanbanCard({
 			type: 'task',
 			task,
 		},
-		disabled: isEditingTaskName || isDraggingList || isOpen,
+		disabled: isEditingTaskName || isDraggingList || isOpen || isDragOverlay,
 		transition: {
 			duration: 0,
 			easing: 'cubic-bezier(0.25, 1, 0.5, 1)',

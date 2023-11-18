@@ -1,4 +1,11 @@
-import { Button, Container, Flex, HStack, useToast } from '@chakra-ui/react';
+import {
+	Box,
+	Button,
+	Container,
+	Flex,
+	HStack,
+	useToast,
+} from '@chakra-ui/react';
 import KanbanList from './KanbanList';
 import { KanbanListModel } from '../../types/kanban-list';
 import {
@@ -7,6 +14,7 @@ import {
 	MouseSensor,
 	PointerSensor,
 	TouchSensor,
+	closestCenter,
 	closestCorners,
 	pointerWithin,
 	rectIntersection,
@@ -422,9 +430,9 @@ export default function KanbanBoard({
 			let activeTaskIndex = lists[activeListIndex].tasks.findIndex(
 				(task) => task.id === active.data.current.task.id,
 			);
-			let overTaskIndex = lists[overListIndex].tasks.findIndex(
-				(task) => task.id === over.data.current.task.id,
-			);
+			// let overTaskIndex = lists[overListIndex].tasks.findIndex(
+			// 	(task) => task.id === over.data.current.task.id,
+			// );
 
 			if (activeListIndex === overListIndex) {
 				return;
@@ -438,7 +446,7 @@ export default function KanbanBoard({
 				// 	overListIndex,
 				// );
 				setIsMovingAcrossLists(true);
-				let newLists = [...lists];
+				let newLists = lists;
 				let [removedTask] = newLists[activeListIndex].tasks.splice(
 					activeTaskIndex,
 					1,
@@ -452,7 +460,7 @@ export default function KanbanBoard({
 					(board: KanbanBoardModel) => {
 						return { ...board, lists: newLists };
 					},
-					{ revalidate: false, rollbackOnError: true, populateCache: true },
+					{ revalidate: false, rollbackOnError: true, populateCache: false },
 				);
 			}
 		}
@@ -491,8 +499,7 @@ export default function KanbanBoard({
 				},
 				{
 					revalidate: false,
-					rollbackOnError: true,
-					populateCache: true,
+					populateCache: false,
 				},
 			);
 		}
@@ -749,7 +756,7 @@ export default function KanbanBoard({
 			return pointerCollisions;
 		}
 
-		return closestCorners(args);
+		return closestCenter(args);
 	}
 	return (
 		<Container maxW={'100%'} p={0}>
