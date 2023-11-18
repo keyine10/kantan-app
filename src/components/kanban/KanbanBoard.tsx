@@ -744,7 +744,6 @@ export default function KanbanBoard({
 
 	function customCollisionDetection(args: any) {
 		const pointerCollisions = pointerWithin(args);
-		console.log(pointerCollisions);
 		if (pointerCollisions.length > 0) {
 			return pointerCollisions;
 		}
