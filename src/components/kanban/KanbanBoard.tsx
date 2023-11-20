@@ -446,7 +446,7 @@ export default function KanbanBoard({
 				// 	overListIndex,
 				// );
 				setIsMovingAcrossLists(true);
-				let newLists = lists;
+				let newLists = [...lists];
 				let [removedTask] = newLists[activeListIndex].tasks.splice(
 					activeTaskIndex,
 					1,
@@ -749,19 +749,19 @@ export default function KanbanBoard({
 		return;
 	};
 
-	function customCollisionDetection(args: any) {
-		const pointerCollisions = pointerWithin(args);
-		// console.log('pointerCollisions', pointerCollisions);
-		if (pointerCollisions.length > 0) {
-			return pointerCollisions;
-		}
+	// function customCollisionDetection(args: any) {
+	// 	const pointerCollisions = pointerWithin(args);
+	// 	// console.log('pointerCollisions', pointerCollisions);
+	// 	if (pointerCollisions.length > 0) {
+	// 		return pointerCollisions;
+	// 	}
 
-		return closestCenter(args);
-	}
+	// 	return closestCenter(args);
+	// }
 	return (
 		<Container maxW={'100%'} p={0}>
 			<DndContext
-				collisionDetection={customCollisionDetection}
+				collisionDetection={closestCorners}
 				onDragStart={handleDragStart}
 				onDragEnd={handleDragEnd}
 				onDragOver={handleDragOver}

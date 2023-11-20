@@ -215,6 +215,8 @@ export default function KanbanCard({
 							minW={240}
 							cursor={'pointer'}
 							minH={'1.5em'}
+							userSelect={'none'}
+							unselectable="on"
 						>
 							{task.name}
 						</Text>
