@@ -22,6 +22,7 @@ import { KanbanBoardModel } from '../../types/kanban-board';
 import { getSocket } from '../../services/socket';
 import KanbanBoardBar from '@/components/kanban/KanbanBoardBar';
 import Head from 'next/head';
+import Navbar from '../../components/common/Navbar';
 
 export default function KanbanPage({
 	user,
@@ -346,9 +347,10 @@ export default function KanbanPage({
 			</Container>
 		);
 	return (
-		<LayoutWithNavBar
-			bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
-		>
+		// <LayoutWithNavBar
+		// 	bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
+		// >
+		<>
 			<Head>
 				<title>{board?.title}</title>
 				<meta name="description" content="Kantan Board Page" />
@@ -357,9 +359,14 @@ export default function KanbanPage({
 			</Head>
 			<Box
 				bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
-				height={'100%'}
+				overflowY={'hidden'}
 				w="100vw"
+				h="100vh"
 			>
+				<Navbar
+					bgColor={board?.backgroundColor ? board?.backgroundColor : 'gray.200'}
+				/>
+
 				<KanbanBoardBar
 					board={board}
 					mutate={mutate}
@@ -368,7 +375,8 @@ export default function KanbanPage({
 				/>
 				<KanbanBoard board={board} mutate={mutate} user={user} />
 			</Box>
-		</LayoutWithNavBar>
+		</>
+		// </LayoutWithNavBar>
 	);
 }
 

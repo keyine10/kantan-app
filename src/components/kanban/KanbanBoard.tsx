@@ -771,7 +771,7 @@ export default function KanbanBoard({
 			>
 				<Container
 					maxW={'100%'}
-					h="100%"
+					minH="100%"
 					bgColor={board.backgroundColor ? board.backgroundColor : 'blue.100'}
 					p={0}
 				>
@@ -780,7 +780,7 @@ export default function KanbanBoard({
 						alignItems={'start'}
 						overflowX={'auto'}
 						overflowY={'hidden'}
-						h={{ base: '88vh', md: '88.4vh', lg: '88.5vh' }}
+						h={{ base: '88vh', md: '88vh', lg: '88vh' }}
 						// pt={4}
 						// pl={4}
 						// pr={{ base: 0, xl: 4 }}
