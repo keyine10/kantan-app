@@ -438,34 +438,33 @@ export function KanbanCardModal({
 	};
 	const handleUpdateTag = async (tag: any) => {
 		console.log('updating tag', tag);
-        try {
-            await taskService.updateTag(task.id, tag, session?.user.accessToken);
-
-        } catch (e) {
-            console.log('error updating tag', e);
-            toast({
-                title: 'Error',
-                description: 'Could not update tag, please try again',
-                status: 'error',
-                duration: 5000,
-                isClosable: true,
-            });
+		try {
+			await taskService.updateTag(task.id, tag, session?.user.accessToken);
+		} catch (e) {
+			console.log('error updating tag', e);
+			toast({
+				title: 'Error',
+				description: 'Could not update tag, please try again',
+				status: 'error',
+				duration: 5000,
+				isClosable: true,
+			});
+		}
 	};
 	const handleDeleteTag = async (tag: any) => {
 		console.log('deleting tag', tag);
-        try {
-            await taskService.removeTag(task.id, tag.id, session?.user.accessToken);
-
-        } catch (e){
-            console.log('error deleting tag', e);
-            toast({
-                title: 'Error',
-                description: 'Could not delete tag, please try again',
-                status: 'error',
-                duration: 5000,
-                isClosable: true,
-            });
-        }
+		try {
+			await taskService.removeTag(task.id, tag.id, session?.user.accessToken);
+		} catch (e) {
+			console.log('error deleting tag', e);
+			toast({
+				title: 'Error',
+				description: 'Could not delete tag, please try again',
+				status: 'error',
+				duration: 5000,
+				isClosable: true,
+			});
+		}
 	};
 	return (
 		<Portal>
