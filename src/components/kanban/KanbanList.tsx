@@ -37,7 +37,7 @@ interface KanbanListProps {
 	isDraggingList: boolean;
 	tasks: KanbanTaskModel[];
 	isDraggingTask: boolean;
-
+	isDragOverlay: boolean;
 	createTask: (name: string, listId: string, position: number) => void;
 	updateTask: (id: string, updatedTask: KanbanTaskModel) => void;
 	deleteTask: (id: string, listId: string) => void;
@@ -50,6 +50,7 @@ export default function KanbanList({
 	list,
 	isDraggingList,
 	isDraggingTask,
+	isDragOverlay,
 	createTask,
 	updateTask,
 	deleteTask,
@@ -78,7 +79,7 @@ export default function KanbanList({
 			duration: 0,
 			easing: 'cubic-bezier(0,0,0,0)',
 		},
-		disabled: isDraggingTask,
+		disabled: isDraggingTask || isDragOverlay,
 	});
 
 	const style = {

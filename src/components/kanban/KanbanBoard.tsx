@@ -56,7 +56,7 @@ export default function KanbanBoard({
 	const sensors = useSensors(
 		useSensor(MouseSensor, {
 			activationConstraint: {
-				distance: 40,
+				distance: 20,
 			},
 		}),
 		useSensor(TouchSensor, {
@@ -440,11 +440,11 @@ export default function KanbanBoard({
 			//
 			if (activeListIndex !== overListIndex) {
 				// Sorting items in different lists
-				// console.log(
-				// 	'sorting items in different lists',
-				// 	activeListIndex,
-				// 	overListIndex,
-				// );
+				console.log(
+					'sorting items in different lists',
+					activeListIndex,
+					overListIndex,
+				);
 				setIsMovingAcrossLists(true);
 				let newLists = [...lists];
 				let [removedTask] = newLists[activeListIndex].tasks.splice(
@@ -470,7 +470,7 @@ export default function KanbanBoard({
 			setIsMovingAcrossLists(true);
 			let activeListIndex = findList(active.data.current.task.listId);
 			let overListIndex = lists.findIndex((list) => list.id === over.id);
-			// console.log('dropping item into a list', activeListIndex, overListIndex);
+			console.log('dropping item into a list', activeListIndex, overListIndex);
 
 			// If active or over list is not found, return
 			if (!lists[activeListIndex] || !lists[overListIndex]) {
@@ -749,19 +749,19 @@ export default function KanbanBoard({
 		return;
 	};
 
-	// function customCollisionDetection(args: any) {
-	// 	const pointerCollisions = pointerWithin(args);
-	// 	// console.log('pointerCollisions', pointerCollisions);
-	// 	if (pointerCollisions.length > 0) {
-	// 		return pointerCollisions;
-	// 	}
+	function customCollisionDetection(args: any) {
+		const pointerCollisions = pointerWithin(args);
+		// console.log('pointerCollisions', pointerCollisions);
+		if (pointerCollisions.length > 0) {
+			return pointerCollisions;
+		}
 
-	// 	return closestCenter(args);
-	// }
+		return closestCorners(args);
+	}
 	return (
 		<Container maxW={'100%'} p={0}>
 			<DndContext
-				collisionDetection={closestCorners}
+				collisionDetection={customCollisionDetection}
 				onDragStart={handleDragStart}
 				onDragEnd={handleDragEnd}
 				onDragOver={handleDragOver}
@@ -817,6 +817,7 @@ export default function KanbanBoard({
 										key={list.id}
 										isDraggingList={isDraggingList}
 										isDraggingTask={isDraggingTask}
+										isDragOverlay={false}
 										createTask={createTask}
 										updateTask={updateTask}
 										deleteTask={deleteTask}
@@ -870,6 +871,7 @@ export default function KanbanBoard({
 										deleteTask={deleteTask}
 										updateList={updateList}
 										deleteList={deleteList}
+										isDragOverlay={true}
 									/>
 								)}
 								{activeTask && (
