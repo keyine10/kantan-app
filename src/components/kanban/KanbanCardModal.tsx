@@ -274,7 +274,7 @@ export function KanbanCardModal({
 				restrictions: {
 					maxFileSize: 4 * 1024 * 1024,
 					minFileSize: 1,
-					maxNumberOfFiles: 5 - task?.attachments?.length,
+					maxNumberOfFiles: 1,
 					minNumberOfFiles: 1,
 					allowedFileTypes: null,
 				},
