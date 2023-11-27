@@ -337,7 +337,7 @@ export default function KanbanBoardBar({
 		let updatedBoard = await boardService.updateBoard(
 			{
 				id: board.id,
-				backgroundColor: 'gray.200',
+				backgroundColor: '#e0e0e0',
 			},
 			user.accessToken,
 		);
