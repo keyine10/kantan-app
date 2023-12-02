@@ -455,13 +455,16 @@ export default function KanbanBoard({
 
 				// newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
 				newLists[overListIndex].tasks.push(removedTask);
-
-				mutate(
-					(board: KanbanBoardModel) => {
-						return { ...board, lists: newLists };
-					},
-					{ revalidate: false, rollbackOnError: true, populateCache: false },
-				);
+				// setTimeout(() => {
+				// 	console.log('timeout here');
+				// 	mutate(
+				// 		(board: KanbanBoardModel) => {
+				// 			return { ...board, lists: newLists };
+				// 		},
+				// 		{ revalidate: false, rollbackOnError: true, populateCache: false },
+				// 	);
+				// }, 1000);
+				return;
 			}
 		}
 		//Dropping an item into a list
@@ -493,15 +496,16 @@ export default function KanbanBoard({
 			);
 			removedTask.listId = over.id;
 			newLists[overListIndex].tasks.push(removedTask);
-			mutate(
-				(board: KanbanBoardModel) => {
-					return { ...board, lists: newLists };
-				},
-				{
-					revalidate: false,
-					populateCache: false,
-				},
-			);
+			// mutate(
+			// 	(board: KanbanBoardModel) => {
+			// 		return { ...board, lists: newLists };
+			// 	},
+			// 	{
+			// 		revalidate: false,
+			// 		populateCache: false,
+			// 	},
+			// );
+			return;
 		}
 	};
 	const handleDragEnd = async (event: any) => {
@@ -744,7 +748,28 @@ export default function KanbanBoard({
 				console.log('sorting items from different list in dragend');
 			}
 		}
-
+		if (activeType === 'task' && overType === 'list') {
+			console.log('move task to empty list in dragend');
+			mutate(
+				async (board: KanbanBoardModel) => {
+					const updatedTaskInDb = await taskService.updateTask(
+						{
+							...activeTask,
+							listId: over.id,
+						},
+						user.accessToken,
+					);
+					return {
+						...board,
+					};
+				},
+				{
+					rollbackOnError: true,
+					populateCache: true,
+					revalidate: false,
+				},
+			);
+		}
 		setIsMovingAcrossLists(false);
 		return;
 	};
