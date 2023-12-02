@@ -70,6 +70,7 @@ export default function KanbanBoard({
 	const [activeTask, setActiveTask] = useState<KanbanTaskModel | null>(null);
 	const [isCreatingList, setIsCreatingList] = useState(false);
 	const [isMovingAcrossLists, setIsMovingAcrossLists] = useState(false);
+	const [dragOverAmount, setDragOverAmount] = useState(0);
 
 	const isDraggingTask = activeTask?.id ? true : false;
 	const isDraggingList = activeList?.id ? true : false;
@@ -398,7 +399,7 @@ export default function KanbanBoard({
 	const handleDragCancel = (event: any) => {
 		handleDragEnd(event);
 	};
-	const handleDragOver = (event: any) => {
+	const handleDragOver = async (event: any) => {
 		const { active, over } = event;
 		if (!active || !over) return;
 		if (active.id === over.id) {
@@ -445,25 +446,27 @@ export default function KanbanBoard({
 					activeListIndex,
 					overListIndex,
 				);
-				setIsMovingAcrossLists(true);
-				let newLists = [...lists];
-				let [removedTask] = newLists[activeListIndex].tasks.splice(
-					activeTaskIndex,
-					1,
-				);
-				removedTask.listId = lists[overListIndex].id;
+				// console.log('currently dragged', dragOverAmount);
+				setDragOverAmount((dragOverAmount) => dragOverAmount + 1);
+				if (!isMovingAcrossLists) {
+					setIsMovingAcrossLists(true);
+					console.log('Task is moving across list');
+				}
 
 				// newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
-				newLists[overListIndex].tasks.push(removedTask);
-				// setTimeout(() => {
-				// 	console.log('timeout here');
-				// 	mutate(
-				// 		(board: KanbanBoardModel) => {
-				// 			return { ...board, lists: newLists };
-				// 		},
-				// 		{ revalidate: false, rollbackOnError: true, populateCache: false },
-				// 	);
-				// }, 1000);
+				mutate(
+					(board: KanbanBoardModel) => {
+						let newLists = board.lists;
+						let [removedTask] = newLists[activeListIndex].tasks.splice(
+							activeTaskIndex,
+							1,
+						);
+						removedTask.listId = newLists[overListIndex].id;
+						newLists[overListIndex].tasks.push(removedTask);
+						return { ...board, lists: newLists };
+					},
+					{ revalidate: false, rollbackOnError: true, populateCache: false },
+				);
 				return;
 			}
 		}
@@ -507,6 +510,7 @@ export default function KanbanBoard({
 			// );
 			return;
 		}
+		return;
 	};
 	const handleDragEnd = async (event: any) => {
 		// task and list after drag end are updated
@@ -516,6 +520,7 @@ export default function KanbanBoard({
 		// setActive to null to remove DragOverlay
 		setActiveTask(null);
 		setActiveList(null);
+		setDragOverAmount(0);
 
 		const { active, over } = event;
 		if (!over) return;
@@ -776,20 +781,24 @@ export default function KanbanBoard({
 
 	function customCollisionDetection(args: any) {
 		const pointerCollisions = pointerWithin(args);
+		const rectIntersections = rectIntersection(args);
 		// console.log('pointerCollisions', pointerCollisions);
 		if (pointerCollisions.length > 0) {
 			return pointerCollisions;
 		}
-
-		return closestCorners(args);
+		if (rectIntersections.length > 0) {
+			return rectIntersections;
+		}
+		return closestCenter(args);
 	}
 	return (
 		<Container maxW={'100%'} p={0}>
 			<DndContext
-				collisionDetection={customCollisionDetection}
+				collisionDetection={closestCorners}
 				onDragStart={handleDragStart}
 				onDragEnd={handleDragEnd}
-				onDragOver={handleDragOver}
+				// onDragOver={handleDragOver}
+				onDragMove={handleDragOver}
 				onDragCancel={handleDragCancel}
 				sensors={sensors}
 				id={dndId}
