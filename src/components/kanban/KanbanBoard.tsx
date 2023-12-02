@@ -789,12 +789,12 @@ export default function KanbanBoard({
 		if (rectIntersections.length > 0) {
 			return rectIntersections;
 		}
-		return closestCenter(args);
+		return closestCorners(args);
 	}
 	return (
 		<Container maxW={'100%'} p={0}>
 			<DndContext
-				collisionDetection={closestCorners}
+				collisionDetection={customCollisionDetection}
 				onDragStart={handleDragStart}
 				onDragEnd={handleDragEnd}
 				// onDragOver={handleDragOver}
