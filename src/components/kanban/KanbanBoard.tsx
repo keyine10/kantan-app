@@ -452,6 +452,14 @@ export default function KanbanBoard({
 				}
 
 				// newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
+				// let newLists = board.lists;
+				// let [removedTask] = newLists[activeListIndex].tasks.splice(
+				// 	activeTaskIndex,
+				// 	1,
+				// );
+				// removedTask.listId = newLists[overListIndex].id;
+				// newLists[overListIndex].tasks.push(removedTask);
+
 				mutate(
 					(board: KanbanBoardModel) => {
 						let newLists = board.lists;
@@ -792,13 +800,14 @@ export default function KanbanBoard({
 	return (
 		<Container maxW={'100%'} p={0}>
 			<DndContext
-				collisionDetection={customCollisionDetection}
+				collisionDetection={closestCorners}
 				onDragStart={handleDragStart}
 				onDragEnd={handleDragEnd}
-				// onDragOver={handleDragOver}
-				onDragMove={handleDragOver}
+				onDragOver={handleDragOver}
+				// onDragMove={handleDragOver}
 				onDragCancel={handleDragCancel}
-				sensors={sensors}
+				// sensors={sensors}
+				autoScroll={true}
 				id={dndId}
 			>
 				<Container
