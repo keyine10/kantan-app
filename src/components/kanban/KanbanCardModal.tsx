@@ -269,6 +269,8 @@ export function KanbanCardModal({
 				locale: {
 					strings: {
 						dropPasteImportFiles: 'Drop files here, or browse from:',
+						dropPasteFiles: 'Drop file here or %{browseFiles}',
+						browseFiles: 'browse file',
 					},
 				},
 				restrictions: {
@@ -309,7 +311,7 @@ export function KanbanCardModal({
 				})
 				.use(Compressor, {
 					id: task.id,
-					quality: 0.9,
+					quality: 0.6,
 					convertTypes: ['image/png', 'image/webp'],
 					convertSize: 1 * 1024 * 1024,
 				} as any),

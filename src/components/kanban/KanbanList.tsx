@@ -96,13 +96,13 @@ export default function KanbanList({
 
 	//sorting tasks will cause a re-render when moving lists around, only employ sorted tasks when the position of the tasks are correct, otherwise it will seem incorrect
 
-	// let sortedTasks = useMemo(
-	// 	() =>
-	// 		list.tasks.sort(
-	// 			(a: KanbanTaskModel, b: KanbanTaskModel) => a.position - b.position,
-	// 		),
-	// 	[list.tasks],
-	// );
+	let sortedTasks = useMemo(
+		() =>
+			list.tasks.sort(
+				(a: KanbanTaskModel, b: KanbanTaskModel) => a.position - b.position,
+			),
+		[list.tasks],
+	);
 
 	const handleCreateTask = (event: any) => {
 		event.stopPropagation();

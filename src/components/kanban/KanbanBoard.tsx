@@ -460,15 +460,33 @@ export default function KanbanBoard({
 				// removedTask.listId = newLists[overListIndex].id;
 				// newLists[overListIndex].tasks.push(removedTask);
 
+				// mutate(
+				// 	(board: KanbanBoardModel) => {
+				// 		let newLists = [...board.lists];
+				// 		let [removedTask] = newLists[activeListIndex].tasks.splice(
+				// 			activeTaskIndex,
+				// 			1,
+				// 		);
+
+				// 		removedTask.listId = newLists[overListIndex].id;
+				// 		newLists[overListIndex].tasks.push(removedTask);
+				// 		return { ...board, lists: newLists };
+				// 	},
+				// 	{ revalidate: false, rollbackOnError: true, populateCache: true },
+				// );
+
 				mutate(
 					(board: KanbanBoardModel) => {
-						let newLists = board.lists;
-						let [removedTask] = newLists[activeListIndex].tasks.splice(
-							activeTaskIndex,
-							1,
-						);
-						removedTask.listId = newLists[overListIndex].id;
-						newLists[overListIndex].tasks.push(removedTask);
+						let newLists = [...board.lists];
+						newLists[activeListIndex].tasks = newLists[
+							activeListIndex
+						].tasks.filter((task) => task.id !== active.data.current.task.id);
+
+						// removedTask.listId = newLists[overListIndex].id;
+						newLists[overListIndex].tasks.push({
+							...active.data.current.task,
+							listId: newLists[overListIndex].id,
+						});
 						return { ...board, lists: newLists };
 					},
 					{ revalidate: false, rollbackOnError: true, populateCache: true },
@@ -505,15 +523,15 @@ export default function KanbanBoard({
 			);
 			removedTask.listId = over.id;
 			newLists[overListIndex].tasks.push(removedTask);
-			// mutate(
-			// 	(board: KanbanBoardModel) => {
-			// 		return { ...board, lists: newLists };
-			// 	},
-			// 	{
-			// 		revalidate: false,
-			// 		populateCache: false,
-			// 	},
-			// );
+			mutate(
+				(board: KanbanBoardModel) => {
+					return { ...board, lists: newLists };
+				},
+				{
+					revalidate: false,
+					populateCache: true,
+				},
+			);
 			return;
 		}
 		return;
@@ -806,7 +824,7 @@ export default function KanbanBoard({
 				onDragOver={handleDragOver}
 				// onDragMove={handleDragOver}
 				onDragCancel={handleDragCancel}
-				// sensors={sensors}
+				sensors={sensors}
 				autoScroll={true}
 				id={dndId}
 			>
