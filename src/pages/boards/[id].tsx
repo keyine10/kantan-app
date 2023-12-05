@@ -133,6 +133,20 @@ export default function KanbanPage({
 
 		socket.on(EVENTS.BOARD_ACTIVE_MEMBERS, (data) => {
 			console.log('board-active-members', data);
+			if (data.members && data.pendingMembers)
+				mutate(
+					(board: any) => {
+						return {
+							...board,
+							members: data.members,
+							pendingMembers: data.pendingMembers,
+						};
+					},
+					{
+						revalidate: false,
+						populateCache: true,
+					},
+				);
 			setActiveMembers(data.activeMembers);
 		});
 

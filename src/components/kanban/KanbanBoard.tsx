@@ -447,10 +447,8 @@ export default function KanbanBoard({
 					overListIndex,
 				);
 				// console.log('currently dragged', dragOverAmount);
-				setDragOverAmount((dragOverAmount) => dragOverAmount + 1);
 				if (!isMovingAcrossLists) {
 					setIsMovingAcrossLists(true);
-					console.log('Task is moving across list');
 				}
 
 				// newLists[overListIndex].tasks.splice(overTaskIndex, 0, removedTask);
@@ -465,7 +463,7 @@ export default function KanbanBoard({
 						newLists[overListIndex].tasks.push(removedTask);
 						return { ...board, lists: newLists };
 					},
-					{ revalidate: false, rollbackOnError: true, populateCache: false },
+					{ revalidate: false, rollbackOnError: true, populateCache: true },
 				);
 				return;
 			}
