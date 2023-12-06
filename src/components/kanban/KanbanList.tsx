@@ -88,21 +88,15 @@ export default function KanbanList({
 	};
 	const toast = useToast();
 	//usememo might make cards not re-render when moving around
-	// let tasksId = useMemo(
-	// 	() => list.tasks.map((task: KanbanTaskModel) => task.id),
-	// 	[list.tasks.length, isDraggingTask, list.tasks],
-	// );
-	let tasksId = list.tasks.map((task: KanbanTaskModel) => task.id);
+	let tasksId = useMemo(
+		() => list.tasks.map((task: KanbanTaskModel) => task.id),
+		[list.tasks.length, list.tasks],
+	);
+	// let tasksId = list.tasks.map((task: KanbanTaskModel) => task.id);
 
 	//sorting tasks will cause a re-render when moving lists around, only employ sorted tasks when the position of the tasks are correct, otherwise it will seem incorrect
 
-	let sortedTasks = useMemo(
-		() =>
-			list.tasks.sort(
-				(a: KanbanTaskModel, b: KanbanTaskModel) => a.position - b.position,
-			),
-		[list.tasks],
-	);
+	let sortedTasks = useMemo(() => list.tasks, [list.tasks, list.tasks.length]);
 
 	const handleCreateTask = (event: any) => {
 		event.stopPropagation();
@@ -275,7 +269,7 @@ export default function KanbanList({
 			>
 				{/* {TODO: add more features to create task textarea} */}
 				<SortableContext items={tasksId} strategy={verticalListSortingStrategy}>
-					{list.tasks.map((task: KanbanTaskModel) => (
+					{sortedTasks.map((task: KanbanTaskModel) => (
 						<KanbanCard
 							task={task}
 							key={task.id}

@@ -413,6 +413,7 @@ export default function KanbanBoard({
 			return;
 		}
 
+		// console.log(activeType, overType);
 		// Handle Items Sorting
 		if (activeType === 'task' && overType === 'task') {
 			// console.log(active.data.current.task.listId);
@@ -496,7 +497,7 @@ export default function KanbanBoard({
 		}
 		//Dropping an item into a list
 		if (activeType === 'task' && overType === 'list') {
-			if (activeTask?.listId === over.id) return;
+			// if (activeTask?.listId === over.id) return;
 			setIsMovingAcrossLists(true);
 			let activeListIndex = findList(active.data.current.task.listId);
 			let overListIndex = lists.findIndex((list) => list.id === over.id);
@@ -515,16 +516,16 @@ export default function KanbanBoard({
 				(task) => task.id === active.data.current.task.id,
 			);
 
-			// Remove task from active list and add to over list
-			let newLists = [...lists];
-			const [removedTask] = newLists[activeListIndex].tasks.splice(
-				activeTaskIndex,
-				1,
-			);
-			removedTask.listId = over.id;
-			newLists[overListIndex].tasks.push(removedTask);
 			mutate(
 				(board: KanbanBoardModel) => {
+					// Remove task from active list and add to over list
+					let newLists = [...lists];
+					const [removedTask] = newLists[activeListIndex].tasks.splice(
+						activeTaskIndex,
+						1,
+					);
+					removedTask.listId = over.id;
+					newLists[overListIndex].tasks.push(removedTask);
 					return { ...board, lists: newLists };
 				},
 				{
